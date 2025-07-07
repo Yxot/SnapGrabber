@@ -3,6 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="description" content="SnapGrabber - Download videos from TikTok, Instagram, YouTube, Facebook, Twitter, Reddit and 15+ more platforms. Free, fast, no watermarks.">
+  <meta name="keywords" content="video downloader, tiktok downloader, instagram downloader, youtube downloader, social media downloader">
+  <meta name="author" content="SnapGrabber">
+  <meta property="og:title" content="SnapGrabber - All-in-One Video Downloader">
+  <meta property="og:description" content="Download videos from 20+ social media platforms instantly">
+  <meta property="og:type" content="website">
   <title>SnapGrabber - Free Video Downloader</title>
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8249078628731848"
@@ -21,8 +27,13 @@
       50% { background-position: 100% 50%; }
       100% { background-position: 0% 50%; }
     }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
     .animate-fadeInUp { animation: fadeInUp 0.8s ease-out; }
     .animate-pulse-slow { animation: pulse 2s infinite; }
+    .animate-spin-slow { animation: spin 1s linear infinite; }
     .gradient-text {
       background: linear-gradient(45deg, #a78bfa, #7c3aed, #a78bfa);
       background-size: 200% 200%;
@@ -118,7 +129,10 @@
       <button type="submit" 
               class="w-full bg-accent-dark text-white py-4 rounded-lg hover:bg-accent font-bold transition-all duration-200 animate-pulse-slow hover:animate-none transform hover:scale-105">
         <span id="button-text">Download Video</span>
-        <span id="loading-spinner" class="hidden">⏳ Processing...</span>
+        <span id="loading-spinner" class="hidden">
+          <span class="animate-spin-slow inline-block mr-2">⏳</span>
+          Processing...
+        </span>
       </button>
     </form>
 
