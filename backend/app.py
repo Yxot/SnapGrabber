@@ -4,7 +4,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 import os
-from backend.utils import tiktok, youtube, instagram
+from backend.utils import universal_downloader
 
 app = FastAPI(title="SnapGrabber API", version="1.0.0")
 
@@ -36,16 +36,9 @@ async def download_video(req: DownloadRequest):
     if not url:
         raise HTTPException(status_code=400, detail="URL is required")
     
-    # Detect platform and download
+    # Use universal downloader for all platforms
     try:
-        if 'tiktok.com' in url:
-            result = await tiktok.download(url)
-        elif 'youtube.com' in url or 'youtu.be' in url:
-            result = await youtube.download(url)
-        elif 'instagram.com' in url:
-            result = await instagram.download(url)
-        else:
-            raise HTTPException(status_code=400, detail="Unsupported platform. Please use TikTok, YouTube, or Instagram URLs.")
+        result = await universal_downloader.download(url)
         
         if "error" in result:
             raise HTTPException(status_code=400, detail=result["error"])
@@ -59,4 +52,15 @@ async def download_video(req: DownloadRequest):
 
 @app.get("/health")
 async def health_check():
-    return {"status": "healthy", "service": "SnapGrabber"} 
+    return {"status": "healthy", "service": "SnapGrabber"}
+
+@app.get("/supported-platforms")
+async def get_supported_platforms():
+    """Return list of supported platforms"""
+    platforms = [
+        "TikTok", "Instagram", "Facebook", "Twitter", "YouTube", 
+        "Reddit", "Pinterest", "Snapchat", "Vimeo", "Bilibili", 
+        "Dailymotion", "Imgur", "iFunny", "Izlesene", "Kuaishou", 
+        "Douyin", "CapCut", "Threads", "ESPN", "IMDB"
+    ]
+    return {"platforms": platforms} 
