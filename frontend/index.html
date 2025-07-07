@@ -1,36 +1,146 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>SnapGrabber - Free Video Downloader</title>
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-  <!-- AdSense/Adsterra: Paste your ad script below -->
-  <!-- <script data-ad-client="ca-pub-XXXXXXXXXXXXXXX" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script> -->
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8249078628731848"
+     crossorigin="anonymous"></script>
+  <style>
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+    @keyframes gradient {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    .animate-fadeInUp { animation: fadeInUp 0.8s ease-out; }
+    .animate-pulse-slow { animation: pulse 2s infinite; }
+    .gradient-text {
+      background: linear-gradient(45deg, #a78bfa, #7c3aed, #a78bfa);
+      background-size: 200% 200%;
+      animation: gradient 3s ease infinite;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .glow {
+      box-shadow: 0 0 20px rgba(167, 139, 250, 0.3);
+    }
+  </style>
 </head>
-<body class="bg-gray-50 flex flex-col min-h-screen">
-  <header class="p-4 bg-white shadow">
-    <h1 class="text-xl font-bold text-center">SnapGrabber</h1>
+<body class="bg-dark text-white flex flex-col min-h-screen transition-colors duration-300">
+  <header class="p-4 bg-dark shadow flex justify-between items-center">
+    <div class="flex items-center space-x-3">
+      <img src="/static/logo.svg" alt="SnapGrabber Logo" class="w-8 h-8">
+      <h1 class="text-xl font-bold text-accent">SnapGrabber</h1>
+    </div>
+    <button id="theme-toggle" class="ml-4 px-3 py-1 rounded bg-accent-dark text-white font-semibold focus:outline-none hover:bg-accent transition-colors duration-200">☾</button>
   </header>
+  
   <!-- Ad Banner (top) -->
   <div class="flex justify-center my-2">
-    <!-- Ad Placeholder: Insert ad code here -->
+    <ins class="adsbygoogle"
+         style="display:block"
+         data-ad-client="ca-pub-8249078628731848"
+         data-ad-slot="1234567890"
+         data-ad-format="auto"
+         data-full-width-responsive="true"></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
   </div>
-  <main class="flex-1 flex flex-col items-center justify-center px-4">
-    <form id="download-form" class="w-full max-w-md bg-white p-6 rounded shadow">
-      <label for="url" class="block mb-2 font-semibold">Paste TikTok, YouTube, or Instagram URL:</label>
-      <input id="url" name="url" type="url" required class="w-full p-2 border rounded mb-4" placeholder="https://...">
-      <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">Download</button>
+  
+  <main class="flex-1 flex flex-col items-center justify-center px-4 py-8">
+    <!-- Hero Section -->
+    <div class="text-center mb-8 animate-fadeInUp">
+      <h1 class="text-5xl md:text-7xl font-bold gradient-text mb-4">
+        SnapGrabber
+      </h1>
+      <p class="text-xl text-gray-300 mb-2">Download videos from</p>
+      <div class="flex justify-center space-x-4 text-accent font-semibold">
+        <span class="flex items-center">
+          <span class="w-3 h-3 bg-red-500 rounded-full mr-2"></span>
+          TikTok
+        </span>
+        <span class="flex items-center">
+          <span class="w-3 h-3 bg-red-600 rounded-full mr-2"></span>
+          YouTube
+        </span>
+        <span class="flex items-center">
+          <span class="w-3 h-3 bg-pink-500 rounded-full mr-2"></span>
+          Instagram
+        </span>
+      </div>
+    </div>
+
+    <!-- Download Form -->
+    <form id="download-form" class="w-full max-w-md bg-dark border border-accent-dark p-8 rounded-xl shadow-lg glow animate-fadeInUp" style="animation-delay: 0.2s;">
+      <label for="url" class="block mb-4 font-semibold text-accent text-lg">Paste your video URL:</label>
+      <input id="url" name="url" type="url" required 
+             class="w-full p-4 border border-accent-dark rounded-lg mb-6 bg-dark text-white placeholder-gray-400 focus:ring-2 focus:ring-accent-dark focus:border-transparent transition-all duration-200" 
+             placeholder="https://www.tiktok.com/@user/video/...">
+      <button type="submit" 
+              class="w-full bg-accent-dark text-white py-4 rounded-lg hover:bg-accent font-bold transition-all duration-200 animate-pulse-slow hover:animate-none transform hover:scale-105">
+        <span id="button-text">Download Video</span>
+        <span id="loading-spinner" class="hidden">⏳ Processing...</span>
+      </button>
     </form>
+
+    <!-- Features -->
+    <div class="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl w-full animate-fadeInUp" style="animation-delay: 0.4s;">
+      <div class="text-center p-4">
+        <div class="text-3xl mb-2">⚡</div>
+        <h3 class="font-semibold text-accent mb-2">Fast Downloads</h3>
+        <p class="text-gray-400 text-sm">Get your videos instantly</p>
+      </div>
+      <div class="text-center p-4">
+        <div class="text-3xl mb-2">🎯</div>
+        <h3 class="font-semibold text-accent mb-2">No Watermarks</h3>
+        <p class="text-gray-400 text-sm">Clean, original quality</p>
+      </div>
+      <div class="text-center p-4">
+        <div class="text-3xl mb-2">📱</div>
+        <h3 class="font-semibold text-accent mb-2">Mobile Friendly</h3>
+        <p class="text-gray-400 text-sm">Works on all devices</p>
+      </div>
+    </div>
+
     <!-- Ad Banner (bottom) -->
-    <div class="flex justify-center my-4">
-      <!-- Ad Placeholder: Insert ad code here -->
+    <div class="flex justify-center my-8">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-8249078628731848"
+           data-ad-slot="0987654321"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>
+        (adsbygoogle = window.adsbygoogle || []).push({});
+      </script>
     </div>
   </main>
-  <footer class="p-4 text-center text-xs text-gray-500">
-    <a href="/privacy.html">Privacy Policy</a> | <a href="/dmca.html">DMCA</a>
-    <br>For personal use only. Not affiliated with TikTok, YouTube, or Instagram.
+  
+  <footer class="p-6 text-center text-sm text-gray-400 border-t border-accent-dark">
+    <div class="mb-2">
+      <a href="/privacy.html" class="text-accent hover:underline mx-2">Privacy Policy</a> | 
+      <a href="/dmca.html" class="text-accent hover:underline mx-2">DMCA</a>
+    </div>
+    <p class="text-xs">For personal use only. Not affiliated with TikTok, YouTube, or Instagram.</p>
   </footer>
+  
   <script src="script.js"></script>
+  <script>
+    // Dark mode toggle
+    document.getElementById('theme-toggle').onclick = function() {
+      document.documentElement.classList.toggle('dark');
+    };
+  </script>
 </body>
 </html> 

@@ -1,0 +1,14 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background circle -->
+  <circle cx="32" cy="32" r="30" fill="#18181b" stroke="#a78bfa" stroke-width="2"/>
+  
+  <!-- Download arrow -->
+  <path d="M32 12L32 36M24 28L32 36L40 28" stroke="#a78bfa" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  
+  <!-- Video icon -->
+  <rect x="20" y="40" width="24" height="16" rx="2" fill="#7c3aed"/>
+  <polygon points="28,44 28,52 36,48" fill="#ffffff"/>
+  
+  <!-- SnapGrabber text -->
+  <text x="32" y="62" text-anchor="middle" fill="#a78bfa" font-family="Arial, sans-serif" font-size="8" font-weight="bold">SG</text>
+</svg> 

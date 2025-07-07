@@ -1,8 +1,16 @@
 module.exports = {
   purge: ['./index.html', './script.js'],
-  darkMode: false,
+  darkMode: 'class',
   theme: {
-    extend: {},
+    extend: {
+      colors: {
+        dark: '#18181b',
+        accent: {
+          DEFAULT: '#a78bfa',
+          dark: '#7c3aed',
+        },
+      },
+    },
   },
   variants: {
     extend: {},
