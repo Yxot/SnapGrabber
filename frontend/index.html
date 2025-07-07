@@ -3,16 +3,50 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <meta name="description" content="SnapGrabber - Download videos from TikTok, Instagram, YouTube. Free, fast, no watermarks.">
-  <meta name="keywords" content="video downloader, tiktok downloader, instagram downloader, youtube downloader, social media downloader">
+  <meta name="description" content="SnapGrabber - Free video downloader for TikTok, Instagram, and YouTube. Download videos without watermarks, fast and secure.">
+  <meta name="keywords" content="video downloader, tiktok downloader, instagram downloader, youtube downloader, free downloader, no watermark">
   <meta name="author" content="SnapGrabber">
-  <meta property="og:title" content="SnapGrabber - All-in-One Video Downloader">
-  <meta property="og:description" content="Download videos from Instagram, TikTok, and YouTube instantly">
+  <meta name="robots" content="index, follow">
+  <meta property="og:title" content="SnapGrabber - Free Video Downloader">
+  <meta property="og:description" content="Download videos from Instagram, TikTok, and YouTube instantly. Free, fast, no watermarks.">
   <meta property="og:type" content="website">
-  <title>SnapGrabber - Free Video Downloader</title>
+  <meta property="og:url" content="https://snapgrabber.vercel.app">
+  <meta property="og:image" content="/static/logo.svg">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="SnapGrabber - Free Video Downloader">
+  <meta name="twitter:description" content="Download videos from Instagram, TikTok, and YouTube instantly.">
+  <link rel="canonical" href="https://snapgrabber.vercel.app">
+  <title>SnapGrabber - Free Video Downloader for TikTok, Instagram, YouTube</title>
+  
+  <!-- Preload critical resources -->
+  <link rel="preload" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" as="style">
+  <link rel="preload" href="/public/tiktok.png" as="image">
+  <link rel="preload" href="/public/instagram.png" as="image">
+  <link rel="preload" href="/public/youtube.png" as="image">
+  
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8249078628731848"
-     crossorigin="anonymous"></script>
+  
+  <!-- Google AdSense -->
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8249078628731848" crossorigin="anonymous"></script>
+  
+  <!-- Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "SnapGrabber",
+    "description": "Free video downloader for TikTok, Instagram, and YouTube",
+    "url": "https://snapgrabber.vercel.app",
+    "applicationCategory": "UtilityApplication",
+    "operatingSystem": "Web Browser",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD"
+    }
+  }
+  </script>
+  
   <style>
     @keyframes fadeInUp {
       from { opacity: 0; transform: translateY(30px); }
@@ -50,6 +84,7 @@
       height: 20px;
       border-radius: 4px;
       margin-right: 8px;
+      object-fit: contain;
     }
     
     /* Theme variables */
@@ -89,15 +124,32 @@
     .border-theme { border-color: var(--border-color); }
     .bg-accent { background-color: var(--accent-color); }
     .hover\:bg-accent:hover { background-color: var(--accent-hover); }
+    
+    /* Performance optimizations */
+    * {
+      box-sizing: border-box;
+    }
+    
+    /* Loading skeleton */
+    .skeleton {
+      background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+      background-size: 200% 100%;
+      animation: loading 1.5s infinite;
+    }
+    
+    @keyframes loading {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
   </style>
 </head>
 <body class="bg-theme-primary text-theme-primary flex flex-col min-h-screen transition-colors duration-300">
   <header class="p-4 bg-theme-secondary shadow flex justify-between items-center">
     <div class="flex items-center space-x-3">
-      <img src="../static/logo.svg" alt="SnapGrabber Logo" class="w-8 h-8">
+      <img src="/static/logo.svg" alt="SnapGrabber Logo" class="w-8 h-8" onerror="this.style.display='none'">
       <h1 class="text-xl font-bold text-accent">SnapGrabber</h1>
     </div>
-    <button id="theme-toggle" class="ml-4 px-3 py-1 rounded bg-accent text-white font-semibold focus:outline-none hover:bg-accent transition-colors duration-200">☾</button>
+    <button id="theme-toggle" class="ml-4 px-3 py-1 rounded bg-accent text-white font-semibold focus:outline-none hover:bg-accent transition-colors duration-200" aria-label="Toggle theme">☾</button>
   </header>
   
   <!-- Ad Banner (top) -->
@@ -121,16 +173,16 @@
       </h1>
       <p class="text-xl text-theme-secondary mb-4">Download videos from</p>
       <div class="flex flex-wrap justify-center gap-3 text-accent font-semibold text-sm mb-6">
-        <span class="flex items-center bg-theme-secondary border border-theme px-3 py-2 rounded-lg">
-          <img src="../public/tiktok.png" alt="TikTok" class="platform-logo">
+        <span class="flex items-center bg-theme-secondary border border-theme px-3 py-2 rounded-lg hover:scale-105 transition-transform">
+          <img src="/public/tiktok.png" alt="TikTok" class="platform-logo" onerror="this.style.display='none'">
           TikTok
         </span>
-        <span class="flex items-center bg-theme-secondary border border-theme px-3 py-2 rounded-lg">
-          <img src="../public/instagram.png" alt="Instagram" class="platform-logo">
+        <span class="flex items-center bg-theme-secondary border border-theme px-3 py-2 rounded-lg hover:scale-105 transition-transform">
+          <img src="/public/instagram.png" alt="Instagram" class="platform-logo" onerror="this.style.display='none'">
           Instagram
         </span>
-        <span class="flex items-center bg-theme-secondary border border-theme px-3 py-2 rounded-lg">
-          <img src="../public/youtube.png" alt="YouTube" class="platform-logo">
+        <span class="flex items-center bg-theme-secondary border border-theme px-3 py-2 rounded-lg hover:scale-105 transition-transform">
+          <img src="/public/youtube.png" alt="YouTube" class="platform-logo" onerror="this.style.display='none'">
           YouTube
         </span>
       </div>
@@ -141,9 +193,11 @@
       <label for="url" class="block mb-4 font-semibold text-accent text-lg">Paste your video URL:</label>
       <input id="url" name="url" type="url" required 
              class="w-full p-4 border border-theme rounded-lg mb-6 bg-theme-tertiary text-theme-primary placeholder-theme-secondary focus:ring-2 focus:ring-accent focus:border-transparent transition-all duration-200" 
-             placeholder="https://www.tiktok.com/@user/video/... or Instagram/YouTube URL">
+             placeholder="https://www.tiktok.com/@user/video/... or Instagram/YouTube URL"
+             autocomplete="off"
+             spellcheck="false">
       <button type="submit" 
-              class="w-full bg-accent text-white py-4 rounded-lg hover:bg-accent font-bold transition-all duration-200 animate-pulse-slow hover:animate-none transform hover:scale-105">
+              class="w-full bg-accent text-white py-4 rounded-lg hover:bg-accent font-bold transition-all duration-200 animate-pulse-slow hover:animate-none transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed">
         <span id="button-text">Download Video</span>
         <span id="loading-spinner" class="hidden">
           <span class="animate-spin-slow inline-block mr-2">⏳</span>
@@ -214,7 +268,16 @@
     function updateThemeButton() {
       const isDark = html.classList.contains('dark');
       themeToggle.textContent = isDark ? '☀️' : '☾';
+      themeToggle.setAttribute('aria-label', isDark ? 'Switch to light mode' : 'Switch to dark mode');
     }
+    
+    // Performance monitoring
+    window.addEventListener('load', function() {
+      if ('performance' in window) {
+        const loadTime = performance.timing.loadEventEnd - performance.timing.navigationStart;
+        console.log('Page load time:', loadTime + 'ms');
+      }
+    });
   </script>
 </body>
 </html> 

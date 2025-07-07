@@ -12,6 +12,12 @@ document.getElementById('download-form').addEventListener('submit', async functi
     return;
   }
   
+  // Validate URL format
+  if (!url.match(/^https?:\/\//)) {
+    showErrorMessage('Please enter a valid URL starting with http:// or https://');
+    return;
+  }
+  
   // Show loading state
   button.disabled = true;
   buttonText.classList.add('hidden');
@@ -49,8 +55,9 @@ document.getElementById('download-form').addEventListener('submit', async functi
       // Create a temporary link to trigger download
       const link = document.createElement('a');
       link.href = data.download_url;
-      link.download = `${data.platform}_video.mp4`;
+      link.download = `${data.platform}_${Date.now()}.mp4`;
       link.target = '_blank';
+      link.rel = 'noopener noreferrer';
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -60,9 +67,13 @@ document.getElementById('download-form').addEventListener('submit', async functi
         showSuccessMessage('Download completed! Check your downloads folder.');
       }, 2000);
       
+      // Clear the form
+      document.getElementById('url').value = '';
+      
     } else {
       // Error
-      showErrorMessage(data.error || data.detail || 'Download failed. Please try again.');
+      const errorMessage = data.error || data.detail || 'Download failed. Please try again.';
+      showErrorMessage(errorMessage);
     }
   } catch (error) {
     console.error('Download error:', error);
@@ -84,23 +95,37 @@ document.getElementById('download-form').addEventListener('submit', async functi
 
 function showSuccessMessage(message) {
   const notification = document.createElement('div');
-  notification.className = 'fixed top-4 right-4 bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg z-50 animate-fadeInUp';
-  notification.textContent = message;
+  notification.className = 'fixed top-4 right-4 bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg z-50 animate-fadeInUp max-w-sm';
+  notification.innerHTML = `
+    <div class="flex items-center">
+      <span class="mr-2">✅</span>
+      <span>${message}</span>
+    </div>
+  `;
   document.body.appendChild(notification);
   
   setTimeout(() => {
-    notification.remove();
+    notification.style.opacity = '0';
+    notification.style.transform = 'translateX(100%)';
+    setTimeout(() => notification.remove(), 300);
   }, 5000);
 }
 
 function showErrorMessage(message) {
   const notification = document.createElement('div');
-  notification.className = 'fixed top-4 right-4 bg-red-600 text-white px-6 py-3 rounded-lg shadow-lg z-50 animate-fadeInUp';
-  notification.textContent = message;
+  notification.className = 'fixed top-4 right-4 bg-red-600 text-white px-6 py-3 rounded-lg shadow-lg z-50 animate-fadeInUp max-w-sm';
+  notification.innerHTML = `
+    <div class="flex items-center">
+      <span class="mr-2">❌</span>
+      <span>${message}</span>
+    </div>
+  `;
   document.body.appendChild(notification);
   
   setTimeout(() => {
-    notification.remove();
+    notification.style.opacity = '0';
+    notification.style.transform = 'translateX(100%)';
+    setTimeout(() => notification.remove(), 300);
   }, 7000);
 }
 
@@ -132,19 +157,28 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   });
   
-  // Test API connection
+  // Test API connection on load
   testApiConnection();
+  
+  // Add URL validation on input
+  const urlInput = document.getElementById('url');
+  urlInput.addEventListener('input', function() {
+    const url = this.value.trim();
+    if (url && !url.match(/^https?:\/\//)) {
+      this.classList.add('border-red-500');
+    } else {
+      this.classList.remove('border-red-500');
+    }
+  });
 });
 
 async function testApiConnection() {
   try {
-    const apiUrl = window.location.hostname === 'localhost' 
-      ? 'http://localhost:8000/health'
-      : '/api/health';
-      
-    const response = await fetch(apiUrl);
+    const apiUrl = '/api/download';
+    const response = await fetch(apiUrl, { method: 'GET' });
     if (response.ok) {
-      console.log('API connection successful');
+      const data = await response.json();
+      console.log('API connection successful:', data);
     }
   } catch (error) {
     console.log('API connection test failed (this is normal for local development)');
