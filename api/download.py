@@ -92,6 +92,16 @@ def download_video(url):
         return {"error": f"Download failed: {str(e)}"}
 
 class handler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        """Test endpoint to check if API is working"""
+        self.send_response(200)
+        self.send_header('Content-type', 'application/json')
+        self.send_header('Access-Control-Allow-Origin', '*')
+        self.end_headers()
+        
+        response = {"status": "API is working", "message": "SnapGrabber API is online"}
+        self.wfile.write(json.dumps(response).encode())
+    
     def do_POST(self):
         try:
             # Read the request body
@@ -123,13 +133,14 @@ class handler(BaseHTTPRequestHandler):
         except json.JSONDecodeError:
             self.send_error_response("Invalid JSON data")
         except Exception as e:
+            print(f"Server error: {str(e)}")  # Add logging
             self.send_error_response(f"Server error: {str(e)}")
     
     def do_OPTIONS(self):
         # Handle CORS preflight requests
         self.send_response(200)
         self.send_header('Access-Control-Allow-Origin', '*')
-        self.send_header('Access-Control-Allow-Methods', 'POST, OPTIONS')
+        self.send_header('Access-Control-Allow-Methods', 'POST, OPTIONS, GET')
         self.send_header('Access-Control-Allow-Headers', 'Content-Type')
         self.end_headers()
     
