@@ -90,10 +90,10 @@ def download_instagram(url):
         return {"error": f"Instagram download error: {str(e)}", "success": False}
 
 def download_youtube(url):
-    """Download YouTube video using RapidAPI"""
+    """Download YouTube video using a more reliable API"""
     try:
         rapidapi_key = '164e51757bmsh7607ec502ddd08ap19830fjsnaee61ed9f238'
-        rapidapi_host = 'youtube-video-download-info.p.rapidapi.com'
+        rapidapi_host = 'youtube-dl-api.p.rapidapi.com'
         
         headers = {
             'x-rapidapi-key': rapidapi_key,
@@ -102,26 +102,29 @@ def download_youtube(url):
         
         params = {'url': url}
         
+        print(f"Trying YouTube API with host: {rapidapi_host}")
         response = requests.get(f'https://{rapidapi_host}/dl', headers=headers, params=params, timeout=30)
         
         print(f"YouTube API Response Status: {response.status_code}")
-        print(f"YouTube API Response: {response.text[:500]}")  # Log first 500 chars
         
         if response.status_code == 200:
             data = response.json()
             print(f"YouTube API Data: {data}")
             
-            # Try different response formats
+            # Try to extract video URL from response
             video_url = None
-            if 'link' in data and isinstance(data['link'], list) and len(data['link']) > 0:
-                # Get the highest quality video
-                video_url = data['link'][0]['url']
-            elif 'url' in data:
-                video_url = data['url']
-            elif 'download_url' in data:
-                video_url = data['download_url']
-            elif 'video_url' in data:
-                video_url = data['video_url']
+            if isinstance(data, dict):
+                if 'url' in data:
+                    video_url = data['url']
+                elif 'link' in data:
+                    video_url = data['link']
+                elif 'download_url' in data:
+                    video_url = data['download_url']
+                elif 'video_url' in data:
+                    video_url = data['video_url']
+                elif 'formats' in data and isinstance(data['formats'], list) and len(data['formats']) > 0:
+                    # Get the best quality format
+                    video_url = data['formats'][0].get('url')
             
             if video_url:
                 return {
@@ -131,15 +134,15 @@ def download_youtube(url):
                     "success": True
                 }
         
-        # If the first API fails, try an alternative
-        return download_youtube_alternative(url)
+        # If the above fails, try a different approach
+        return download_youtube_simple(url)
         
     except Exception as e:
         print(f"YouTube download error: {str(e)}")
-        return {"error": f"YouTube download error: {str(e)}", "success": False}
+        return download_youtube_simple(url)
 
-def download_youtube_alternative(url):
-    """Alternative YouTube download method"""
+def download_youtube_simple(url):
+    """Simple YouTube download using a different API"""
     try:
         rapidapi_key = '164e51757bmsh7607ec502ddd08ap19830fjsnaee61ed9f238'
         rapidapi_host = 'youtube-mp36.p.rapidapi.com'
@@ -151,13 +154,14 @@ def download_youtube_alternative(url):
         
         params = {'url': url}
         
+        print(f"Trying simple YouTube API with host: {rapidapi_host}")
         response = requests.get(f'https://{rapidapi_host}/dl', headers=headers, params=params, timeout=30)
         
-        print(f"YouTube Alternative API Response Status: {response.status_code}")
+        print(f"Simple YouTube API Response Status: {response.status_code}")
         
         if response.status_code == 200:
             data = response.json()
-            print(f"YouTube Alternative API Data: {data}")
+            print(f"Simple YouTube API Data: {data}")
             
             if 'link' in data:
                 return {
@@ -167,11 +171,12 @@ def download_youtube_alternative(url):
                     "success": True
                 }
         
-        return {"error": "Failed to extract YouTube video from both APIs", "success": False}
+        # If all APIs fail, return a helpful error
+        return {"error": "YouTube video download is temporarily unavailable. Please try again later.", "success": False}
         
     except Exception as e:
-        print(f"YouTube alternative download error: {str(e)}")
-        return {"error": f"YouTube download failed: {str(e)}", "success": False}
+        print(f"Simple YouTube download error: {str(e)}")
+        return {"error": "YouTube download service is currently unavailable", "success": False}
 
 def download_video(url):
     """Main download function that routes to platform-specific handlers"""
@@ -209,6 +214,35 @@ def download_video(url):
 class handler(BaseHTTPRequestHandler):
     def do_GET(self):
         """Test endpoint to check if API is working"""
+        # Check if this is a test request
+        if self.path.startswith('/api/download/test'):
+            self.send_response(200)
+            self.send_header('Content-type', 'application/json')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            
+            # Test the YouTube API directly
+            test_url = "https://youtu.be/ooMsDvZUrAg?si=qf2SHRR9RXdCjIUV"
+            try:
+                result = download_youtube(test_url)
+                response = {
+                    "status": "Test completed",
+                    "test_url": test_url,
+                    "result": result,
+                    "message": "YouTube API test completed"
+                }
+            except Exception as e:
+                response = {
+                    "status": "Test failed",
+                    "test_url": test_url,
+                    "error": str(e),
+                    "message": "YouTube API test failed"
+                }
+            
+            self.wfile.write(json.dumps(response).encode())
+            return
+        
+        # Regular status endpoint
         self.send_response(200)
         self.send_header('Content-type', 'application/json')
         self.send_header('Access-Control-Allow-Origin', '*')
@@ -218,7 +252,8 @@ class handler(BaseHTTPRequestHandler):
             "status": "API is working", 
             "message": "SnapGrabber API is online",
             "supported_platforms": ["tiktok", "instagram", "youtube"],
-            "version": "1.0.0"
+            "version": "1.0.0",
+            "test_endpoint": "/api/download/test"
         }
         self.wfile.write(json.dumps(response).encode())
     
@@ -281,7 +316,7 @@ class handler(BaseHTTPRequestHandler):
         self.send_response(200)
         self.send_header('Access-Control-Allow-Origin', '*')
         self.send_header('Access-Control-Allow-Methods', 'POST, OPTIONS, GET')
-        self.send_header('Access-Control-Allow-Headers', 'Content-Type')
+        self.send_header('Access-Control-Allow-Headers', 'Content-Type, Accept')
         self.end_headers()
     
     def send_error_response(self, message):
