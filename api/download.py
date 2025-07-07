@@ -104,11 +104,26 @@ def download_youtube(url):
         
         response = requests.get(f'https://{rapidapi_host}/dl', headers=headers, params=params, timeout=30)
         
+        print(f"YouTube API Response Status: {response.status_code}")
+        print(f"YouTube API Response: {response.text[:500]}")  # Log first 500 chars
+        
         if response.status_code == 200:
             data = response.json()
-            if 'link' in data and len(data['link']) > 0:
+            print(f"YouTube API Data: {data}")
+            
+            # Try different response formats
+            video_url = None
+            if 'link' in data and isinstance(data['link'], list) and len(data['link']) > 0:
                 # Get the highest quality video
                 video_url = data['link'][0]['url']
+            elif 'url' in data:
+                video_url = data['url']
+            elif 'download_url' in data:
+                video_url = data['download_url']
+            elif 'video_url' in data:
+                video_url = data['video_url']
+            
+            if video_url:
                 return {
                     "download_url": video_url,
                     "title": data.get('title', 'YouTube Video'),
@@ -116,34 +131,79 @@ def download_youtube(url):
                     "success": True
                 }
         
-        return {"error": "Failed to extract YouTube video", "success": False}
+        # If the first API fails, try an alternative
+        return download_youtube_alternative(url)
         
     except Exception as e:
+        print(f"YouTube download error: {str(e)}")
         return {"error": f"YouTube download error: {str(e)}", "success": False}
+
+def download_youtube_alternative(url):
+    """Alternative YouTube download method"""
+    try:
+        rapidapi_key = '164e51757bmsh7607ec502ddd08ap19830fjsnaee61ed9f238'
+        rapidapi_host = 'youtube-mp36.p.rapidapi.com'
+        
+        headers = {
+            'x-rapidapi-key': rapidapi_key,
+            'x-rapidapi-host': rapidapi_host
+        }
+        
+        params = {'url': url}
+        
+        response = requests.get(f'https://{rapidapi_host}/dl', headers=headers, params=params, timeout=30)
+        
+        print(f"YouTube Alternative API Response Status: {response.status_code}")
+        
+        if response.status_code == 200:
+            data = response.json()
+            print(f"YouTube Alternative API Data: {data}")
+            
+            if 'link' in data:
+                return {
+                    "download_url": data['link'],
+                    "title": data.get('title', 'YouTube Video'),
+                    "platform": "youtube",
+                    "success": True
+                }
+        
+        return {"error": "Failed to extract YouTube video from both APIs", "success": False}
+        
+    except Exception as e:
+        print(f"YouTube alternative download error: {str(e)}")
+        return {"error": f"YouTube download failed: {str(e)}", "success": False}
 
 def download_video(url):
     """Main download function that routes to platform-specific handlers"""
     try:
+        print(f"Starting download for URL: {url}")
+        
         # Validate URL format
         if not url.startswith(('http://', 'https://')):
             return {"error": "Invalid URL format. Please provide a valid URL starting with http:// or https://", "success": False}
         
         # Detect platform
         platform = detect_platform(url)
+        print(f"Detected platform: {platform}")
+        
         if platform == 'unknown':
             return {"error": "Unsupported platform. Please use Instagram, TikTok, or YouTube URLs only.", "success": False}
         
         # Route to platform-specific downloader
         if platform == 'tiktok':
+            print("Routing to TikTok downloader")
             return download_tiktok(url)
         elif platform == 'instagram':
+            print("Routing to Instagram downloader")
             return download_instagram(url)
         elif platform == 'youtube':
+            print("Routing to YouTube downloader")
             return download_youtube(url)
         else:
             return {"error": "Platform not supported", "success": False}
             
     except Exception as e:
+        print(f"Main download error: {str(e)}")
         return {"error": f"Download failed: {str(e)}", "success": False}
 
 class handler(BaseHTTPRequestHandler):
@@ -164,30 +224,39 @@ class handler(BaseHTTPRequestHandler):
     
     def do_POST(self):
         try:
+            print("Received POST request")
+            
             # Read the request body
             content_length = int(self.headers.get('Content-Length', 0))
             if content_length == 0:
+                print("No content length provided")
                 self.send_error_response("No data provided")
                 return
                 
             post_data = self.rfile.read(content_length)
+            print(f"Received data: {post_data.decode('utf-8')}")
             
             # Parse JSON data
             try:
                 data = json.loads(post_data.decode('utf-8'))
-            except json.JSONDecodeError:
+            except json.JSONDecodeError as e:
+                print(f"JSON decode error: {str(e)}")
                 self.send_error_response("Invalid JSON data")
                 return
                 
             url = data.get('url', '').strip()
+            print(f"Extracted URL: {url}")
             
             # Validate URL
             if not url:
+                print("No URL provided")
                 self.send_error_response("URL is required")
                 return
             
             # Download the video
+            print("Starting video download")
             result = download_video(url)
+            print(f"Download result: {result}")
             
             # Send response
             self.send_response(200)
@@ -197,10 +266,14 @@ class handler(BaseHTTPRequestHandler):
             self.send_header('Access-Control-Allow-Headers', 'Content-Type')
             self.end_headers()
             
-            self.wfile.write(json.dumps(result).encode())
+            response_json = json.dumps(result)
+            print(f"Sending response: {response_json}")
+            self.wfile.write(response_json.encode())
             
         except Exception as e:
-            print(f"Server error: {str(e)}")  # Add logging
+            print(f"Server error in POST handler: {str(e)}")
+            import traceback
+            traceback.print_exc()
             self.send_error_response(f"Server error: {str(e)}")
     
     def do_OPTIONS(self):
