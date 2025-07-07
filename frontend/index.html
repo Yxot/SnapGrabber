@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <meta name="description" content="SnapGrabber - Download videos from TikTok, Instagram, YouTube, Facebook, Twitter, Reddit and 15+ more platforms. Free, fast, no watermarks.">
+  <meta name="description" content="SnapGrabber - Download videos from TikTok, Instagram, YouTube. Free, fast, no watermarks.">
   <meta name="keywords" content="video downloader, tiktok downloader, instagram downloader, youtube downloader, social media downloader">
   <meta name="author" content="SnapGrabber">
   <meta property="og:title" content="SnapGrabber - All-in-One Video Downloader">
-  <meta property="og:description" content="Download videos from 20+ social media platforms instantly">
+  <meta property="og:description" content="Download videos from Instagram, TikTok, and YouTube instantly">
   <meta property="og:type" content="website">
   <title>SnapGrabber - Free Video Downloader</title>
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
@@ -51,15 +51,22 @@
       border-radius: 4px;
       margin-right: 8px;
     }
+    /* Custom classes for dark theme */
+    .bg-dark { background-color: #1f2937; }
+    .text-accent { color: #a78bfa; }
+    .bg-accent-dark { background-color: #7c3aed; }
+    .border-accent-dark { border-color: #7c3aed; }
+    .hover\:bg-accent:hover { background-color: #a78bfa; }
+    .focus\:ring-accent-dark:focus { --tw-ring-color: #7c3aed; }
   </style>
 </head>
-<body class="bg-dark text-white flex flex-col min-h-screen transition-colors duration-300">
-  <header class="p-4 bg-dark shadow flex justify-between items-center">
+<body class="bg-gray-900 text-white flex flex-col min-h-screen transition-colors duration-300">
+  <header class="p-4 bg-gray-800 shadow flex justify-between items-center">
     <div class="flex items-center space-x-3">
       <img src="/static/logo.svg" alt="SnapGrabber Logo" class="w-8 h-8">
-      <h1 class="text-xl font-bold text-accent">SnapGrabber</h1>
+      <h1 class="text-xl font-bold text-purple-400">SnapGrabber</h1>
     </div>
-    <button id="theme-toggle" class="ml-4 px-3 py-1 rounded bg-accent-dark text-white font-semibold focus:outline-none hover:bg-accent transition-colors duration-200">☾</button>
+    <button id="theme-toggle" class="ml-4 px-3 py-1 rounded bg-purple-600 text-white font-semibold focus:outline-none hover:bg-purple-500 transition-colors duration-200">☾</button>
   </header>
   
   <!-- Ad Banner (top) -->
@@ -82,16 +89,16 @@
         SnapGrabber
       </h1>
       <p class="text-xl text-gray-300 mb-4">Download videos from</p>
-      <div class="flex flex-wrap justify-center gap-3 text-accent font-semibold text-sm mb-6">
-        <span class="flex items-center bg-dark border border-accent-dark px-3 py-2 rounded-lg">
+      <div class="flex flex-wrap justify-center gap-3 text-purple-400 font-semibold text-sm mb-6">
+        <span class="flex items-center bg-gray-800 border border-purple-600 px-3 py-2 rounded-lg">
           <img src="/public/tiktok.png" alt="TikTok" class="platform-logo">
           TikTok
         </span>
-        <span class="flex items-center bg-dark border border-accent-dark px-3 py-2 rounded-lg">
+        <span class="flex items-center bg-gray-800 border border-purple-600 px-3 py-2 rounded-lg">
           <img src="/public/instagram.png" alt="Instagram" class="platform-logo">
           Instagram
         </span>
-        <span class="flex items-center bg-dark border border-accent-dark px-3 py-2 rounded-lg">
+        <span class="flex items-center bg-gray-800 border border-purple-600 px-3 py-2 rounded-lg">
           <img src="/public/youtube.png" alt="YouTube" class="platform-logo">
           YouTube
         </span>
@@ -99,13 +106,13 @@
     </div>
 
     <!-- Download Form -->
-    <form id="download-form" class="w-full max-w-md bg-dark border border-accent-dark p-8 rounded-xl shadow-lg glow animate-fadeInUp" style="animation-delay: 0.2s;">
-      <label for="url" class="block mb-4 font-semibold text-accent text-lg">Paste your video URL:</label>
+    <form id="download-form" class="w-full max-w-md bg-gray-800 border border-purple-600 p-8 rounded-xl shadow-lg glow animate-fadeInUp" style="animation-delay: 0.2s;">
+      <label for="url" class="block mb-4 font-semibold text-purple-400 text-lg">Paste your video URL:</label>
       <input id="url" name="url" type="url" required 
-             class="w-full p-4 border border-accent-dark rounded-lg mb-6 bg-dark text-white placeholder-gray-400 focus:ring-2 focus:ring-accent-dark focus:border-transparent transition-all duration-200" 
-             placeholder="https://www.tiktok.com/@user/video/... or any social media URL">
+             class="w-full p-4 border border-purple-600 rounded-lg mb-6 bg-gray-700 text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-600 focus:border-transparent transition-all duration-200" 
+             placeholder="https://www.tiktok.com/@user/video/... or Instagram/YouTube URL">
       <button type="submit" 
-              class="w-full bg-accent-dark text-white py-4 rounded-lg hover:bg-accent font-bold transition-all duration-200 animate-pulse-slow hover:animate-none transform hover:scale-105">
+              class="w-full bg-purple-600 text-white py-4 rounded-lg hover:bg-purple-500 font-bold transition-all duration-200 animate-pulse-slow hover:animate-none transform hover:scale-105">
         <span id="button-text">Download Video</span>
         <span id="loading-spinner" class="hidden">
           <span class="animate-spin-slow inline-block mr-2">⏳</span>
@@ -118,17 +125,17 @@
     <div class="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl w-full animate-fadeInUp" style="animation-delay: 0.4s;">
       <div class="text-center p-4">
         <div class="text-3xl mb-2">⚡</div>
-        <h3 class="font-semibold text-accent mb-2">Fast Downloads</h3>
+        <h3 class="font-semibold text-purple-400 mb-2">Fast Downloads</h3>
         <p class="text-gray-400 text-sm">Get your videos instantly</p>
       </div>
       <div class="text-center p-4">
         <div class="text-3xl mb-2">🎯</div>
-        <h3 class="font-semibold text-accent mb-2">No Watermarks</h3>
+        <h3 class="font-semibold text-purple-400 mb-2">No Watermarks</h3>
         <p class="text-gray-400 text-sm">Clean, original quality</p>
       </div>
       <div class="text-center p-4">
         <div class="text-3xl mb-2">📱</div>
-        <h3 class="font-semibold text-accent mb-2">Mobile Friendly</h3>
+        <h3 class="font-semibold text-purple-400 mb-2">Mobile Friendly</h3>
         <p class="text-gray-400 text-sm">Works on all devices</p>
       </div>
     </div>
@@ -147,10 +154,10 @@
     </div>
   </main>
   
-  <footer class="p-6 text-center text-sm text-gray-400 border-t border-accent-dark">
+  <footer class="p-6 text-center text-sm text-gray-400 border-t border-purple-600">
     <div class="mb-2">
-      <a href="/privacy.html" class="text-accent hover:underline mx-2">Privacy Policy</a> | 
-      <a href="/dmca.html" class="text-accent hover:underline mx-2">DMCA</a>
+      <a href="/privacy.html" class="text-purple-400 hover:underline mx-2">Privacy Policy</a> | 
+      <a href="/dmca.html" class="text-purple-400 hover:underline mx-2">DMCA</a>
     </div>
     <p class="text-xs">For personal use only. Not affiliated with any social media platforms.</p>
   </footer>

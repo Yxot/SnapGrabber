@@ -19,10 +19,8 @@ document.getElementById('download-form').addEventListener('submit', async functi
   button.classList.add('opacity-75');
   
   try {
-    // Use relative path for Vercel deployment
-    const apiUrl = window.location.hostname === 'localhost' 
-      ? 'http://localhost:8000/download'
-      : '/api/download';
+    // Use the correct API endpoint for Vercel
+    const apiUrl = '/api/download';
       
     const response = await fetch(apiUrl, {
       method: 'POST',
@@ -33,11 +31,16 @@ document.getElementById('download-form').addEventListener('submit', async functi
       body: JSON.stringify({ url })
     });
     
+    console.log('Response status:', response.status);
+    
     if (!response.ok) {
+      const errorText = await response.text();
+      console.error('API Error:', errorText);
       throw new Error(`HTTP error! status: ${response.status}`);
     }
     
     const data = await response.json();
+    console.log('API Response:', data);
     
     if (data.success && data.download_url) {
       // Success - show download info and trigger download
@@ -65,8 +68,10 @@ document.getElementById('download-form').addEventListener('submit', async functi
     console.error('Download error:', error);
     if (error.message.includes('HTTP error')) {
       showErrorMessage('Server error. Please try again later.');
-    } else {
+    } else if (error.message.includes('Failed to fetch')) {
       showErrorMessage('Network error. Please check your connection and try again.');
+    } else {
+      showErrorMessage('An unexpected error occurred. Please try again.');
     }
   } finally {
     // Reset button state
