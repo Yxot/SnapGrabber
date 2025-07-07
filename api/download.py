@@ -298,7 +298,7 @@ class handler(BaseHTTPRequestHandler):
             self.send_header('Content-type', 'application/json')
             self.send_header('Access-Control-Allow-Origin', '*')
             self.send_header('Access-Control-Allow-Methods', 'POST, OPTIONS, GET')
-            self.send_header('Access-Control-Allow-Headers', 'Content-Type')
+            self.send_header('Access-Control-Allow-Headers', 'Content-Type, Accept')
             self.end_headers()
             
             response_json = json.dumps(result)
@@ -326,4 +326,13 @@ class handler(BaseHTTPRequestHandler):
         self.end_headers()
         
         error_response = {"error": message, "success": False}
-        self.wfile.write(json.dumps(error_response).encode()) 
+        self.wfile.write(json.dumps(error_response).encode())
+
+# For Vercel serverless functions
+def lambda_handler(event, context):
+    """AWS Lambda handler for Vercel"""
+    return handler().do_POST()
+
+# For direct testing
+if __name__ == "__main__":
+    print("API is ready for testing") 

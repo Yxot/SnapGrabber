@@ -20,6 +20,14 @@
   ],
   "routes": [
     {
+      "src": "/api/download",
+      "dest": "/api/download.py"
+    },
+    {
+      "src": "/api/test",
+      "dest": "/api/test.py"
+    },
+    {
       "src": "/api/(.*)",
       "dest": "/api/$1"
     },
