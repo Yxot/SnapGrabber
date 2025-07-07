@@ -14,42 +14,8 @@ def detect_platform(url):
         return 'tiktok'
     elif 'instagram.com' in url_lower:
         return 'instagram'
-    elif 'facebook.com' in url_lower:
-        return 'facebook'
-    elif 'twitter.com' in url_lower or 'x.com' in url_lower:
-        return 'twitter'
     elif 'youtube.com' in url_lower or 'youtu.be' in url_lower:
         return 'youtube'
-    elif 'reddit.com' in url_lower:
-        return 'reddit'
-    elif 'pinterest.com' in url_lower:
-        return 'pinterest'
-    elif 'snapchat.com' in url_lower:
-        return 'snapchat'
-    elif 'vimeo.com' in url_lower:
-        return 'vimeo'
-    elif 'bilibili.com' in url_lower:
-        return 'bilibili'
-    elif 'dailymotion.com' in url_lower:
-        return 'dailymotion'
-    elif 'imgur.com' in url_lower:
-        return 'imgur'
-    elif 'ifunny.co' in url_lower:
-        return 'ifunny'
-    elif 'izlesene.com' in url_lower:
-        return 'izlesene'
-    elif 'kuaishou.com' in url_lower:
-        return 'kuaishou'
-    elif 'douyin.com' in url_lower:
-        return 'douyin'
-    elif 'capcut.com' in url_lower:
-        return 'capcut'
-    elif 'threads.net' in url_lower:
-        return 'threads'
-    elif 'espn.com' in url_lower:
-        return 'espn'
-    elif 'imdb.com' in url_lower:
-        return 'imdb'
     else:
         return 'unknown'
 
@@ -63,7 +29,7 @@ def download_video(url):
         # Detect platform
         platform = detect_platform(url)
         if platform == 'unknown':
-            return {"error": "Unsupported platform. Please use a supported social media URL."}
+            return {"error": "Unsupported platform. Please use Instagram, TikTok, or YouTube URLs only."}
         
         # RapidAPI configuration
         rapidapi_key = '164e51757bmsh7607ec502ddd08ap19830fjsnaee61ed9f238'
