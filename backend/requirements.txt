@@ -4,4 +4,5 @@ yt-dlp==2023.11.16
 instaloader==4.10.1
 pydantic==2.5.0
 requests==2.31.0
-python-multipart==0.0.6 
+python-multipart==0.0.6
+aiofiles==23.2.1 

@@ -38,10 +38,16 @@ All-in-one social media video downloader with ad monetization.
 - Backend: Python (FastAPI)
 - Downloader: Universal RapidAPI service
 
-## Setup
+## Local Setup
 1. Install backend dependencies: `pip install -r backend/requirements.txt`
 2. Run backend: `uvicorn backend.app:app --reload`
 3. Open `frontend/index.html` in your browser
+
+## Vercel Deployment
+1. Connect your GitHub repository to Vercel
+2. Vercel will automatically detect the configuration
+3. Deploy - no additional settings needed
+4. Your app will be available at your Vercel URL
 
 ## API Configuration
 The app uses RapidAPI services for downloading:
