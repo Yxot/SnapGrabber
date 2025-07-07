@@ -1,6 +1,7 @@
-fastapi
-uvicorn
-yt-dlp
-instaloader
-pydantic
-requests 
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+yt-dlp==2023.11.16
+instaloader==4.10.1
+pydantic==2.5.0
+requests==2.31.0
+python-multipart==0.0.6 

@@ -1,10 +1,16 @@
 document.getElementById('download-form').addEventListener('submit', async function(e) {
   e.preventDefault();
   
-  const url = document.getElementById('url').value;
+  const url = document.getElementById('url').value.trim();
   const button = document.querySelector('button[type="submit"]');
   const buttonText = document.getElementById('button-text');
   const loadingSpinner = document.getElementById('loading-spinner');
+  
+  // Validate URL
+  if (!url) {
+    showErrorMessage('Please enter a valid URL');
+    return;
+  }
   
   // Show loading state
   button.disabled = true;
@@ -20,9 +26,16 @@ document.getElementById('download-form').addEventListener('submit', async functi
       
     const response = await fetch(apiUrl, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
       body: JSON.stringify({ url })
     });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
     
     const data = await response.json();
     
@@ -34,11 +47,15 @@ document.getElementById('download-form').addEventListener('submit', async functi
       }, 1000);
     } else {
       // Error
-      showErrorMessage(data.error || 'Download failed. Please try again.');
+      showErrorMessage(data.error || data.detail || 'Download failed. Please try again.');
     }
   } catch (error) {
     console.error('Download error:', error);
-    showErrorMessage('Network error. Please check your connection and try again.');
+    if (error.message.includes('HTTP error')) {
+      showErrorMessage('Server error. Please try again later.');
+    } else {
+      showErrorMessage('Network error. Please check your connection and try again.');
+    }
   } finally {
     // Reset button state
     button.disabled = false;
@@ -84,4 +101,22 @@ document.addEventListener('DOMContentLoaded', function() {
       this.style.transform = 'translateY(0)';
     });
   });
-}); 
+  
+  // Test API connection
+  testApiConnection();
+});
+
+async function testApiConnection() {
+  try {
+    const apiUrl = window.location.hostname === 'localhost' 
+      ? 'http://localhost:8000/health'
+      : '/api/health';
+      
+    const response = await fetch(apiUrl);
+    if (response.ok) {
+      console.log('API connection successful');
+    }
+  } catch (error) {
+    console.log('API connection test failed (this is normal for local development)');
+  }
+} 
