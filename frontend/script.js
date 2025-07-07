@@ -13,7 +13,12 @@ document.getElementById('download-form').addEventListener('submit', async functi
   button.classList.add('opacity-75');
   
   try {
-    const response = await fetch('http://localhost:8000/download', {
+    // Use relative path for Vercel deployment
+    const apiUrl = window.location.hostname === 'localhost' 
+      ? 'http://localhost:8000/download'
+      : '/api/download';
+      
+    const response = await fetch(apiUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ url })
