@@ -24,12 +24,47 @@ def detect_platform(url):
         return 'reddit'
     elif 'pinterest.com' in url_lower:
         return 'pinterest'
+    elif 'snapchat.com' in url_lower:
+        return 'snapchat'
+    elif 'vimeo.com' in url_lower:
+        return 'vimeo'
+    elif 'bilibili.com' in url_lower:
+        return 'bilibili'
+    elif 'dailymotion.com' in url_lower:
+        return 'dailymotion'
+    elif 'imgur.com' in url_lower:
+        return 'imgur'
+    elif 'ifunny.co' in url_lower:
+        return 'ifunny'
+    elif 'izlesene.com' in url_lower:
+        return 'izlesene'
+    elif 'kuaishou.com' in url_lower:
+        return 'kuaishou'
+    elif 'douyin.com' in url_lower:
+        return 'douyin'
+    elif 'capcut.com' in url_lower:
+        return 'capcut'
+    elif 'threads.net' in url_lower:
+        return 'threads'
+    elif 'espn.com' in url_lower:
+        return 'espn'
+    elif 'imdb.com' in url_lower:
+        return 'imdb'
     else:
         return 'unknown'
 
 def download_video(url):
     """Download video using RapidAPI"""
     try:
+        # Validate URL format
+        if not url.startswith(('http://', 'https://')):
+            return {"error": "Invalid URL format. Please provide a valid URL starting with http:// or https://"}
+        
+        # Detect platform
+        platform = detect_platform(url)
+        if platform == 'unknown':
+            return {"error": "Unsupported platform. Please use a supported social media URL."}
+        
         # RapidAPI configuration
         rapidapi_key = '164e51757bmsh7607ec502ddd08ap19830fjsnaee61ed9f238'
         rapidapi_host = 'instagram-downloader-download-instagram-videos-stories1.p.rapidapi.com'
@@ -47,19 +82,16 @@ def download_video(url):
         }
         
         # Make API request
-        response = requests.get(api_url, headers=headers, params=params)
+        response = requests.get(api_url, headers=headers, params=params, timeout=30)
         
         if response.status_code != 200:
-            return {"error": f"API request failed with status {response.status_code}"}
+            return {"error": f"API request failed with status {response.status_code}. Please try again."}
         
         data = response.json()
         
         # Check if the API response is successful
         if not data or 'error' in data:
             return {"error": f"API error: {data.get('error', 'Unknown error')}"}
-        
-        # Extract platform from URL
-        platform = detect_platform(url)
         
         # Extract video URL from response
         video_url = None
@@ -70,46 +102,62 @@ def download_video(url):
                 video_url = data['url']
             elif 'download_url' in data:
                 video_url = data['download_url']
+            elif 'media' in data and isinstance(data['media'], list) and len(data['media']) > 0:
+                video_url = data['media'][0].get('url') or data['media'][0].get('video_url')
         
         if not video_url:
-            return {"error": "No video URL found in API response"}
+            return {"error": "No video URL found in API response. This content might not be available for download."}
+        
+        # Extract title
+        title = data.get('title') or data.get('caption') or data.get('description') or f'{platform.title()} Video'
         
         return {
             "download_url": video_url,
-            "title": data.get('title', f'{platform.title()} Video'),
-            "platform": platform
+            "title": title,
+            "platform": platform,
+            "success": True
         }
         
+    except requests.exceptions.Timeout:
+        return {"error": "Request timeout. Please try again."}
+    except requests.exceptions.RequestException as e:
+        return {"error": f"Network error: {str(e)}"}
     except Exception as e:
         return {"error": f"Download failed: {str(e)}"}
 
 class handler(BaseHTTPRequestHandler):
     def do_POST(self):
-        # Read the request body
-        content_length = int(self.headers['Content-Length'])
-        post_data = self.rfile.read(content_length)
-        
-        # Parse JSON data
-        data = json.loads(post_data.decode('utf-8'))
-        url = data.get('url', '').strip()
-        
-        # Validate URL
-        if not url:
-            self.send_error_response("URL is required")
-            return
-        
-        # Download the video
-        result = download_video(url)
-        
-        # Send response
-        self.send_response(200)
-        self.send_header('Content-type', 'application/json')
-        self.send_header('Access-Control-Allow-Origin', '*')
-        self.send_header('Access-Control-Allow-Methods', 'POST, OPTIONS')
-        self.send_header('Access-Control-Allow-Headers', 'Content-Type')
-        self.end_headers()
-        
-        self.wfile.write(json.dumps(result).encode())
+        try:
+            # Read the request body
+            content_length = int(self.headers['Content-Length'])
+            post_data = self.rfile.read(content_length)
+            
+            # Parse JSON data
+            data = json.loads(post_data.decode('utf-8'))
+            url = data.get('url', '').strip()
+            
+            # Validate URL
+            if not url:
+                self.send_error_response("URL is required")
+                return
+            
+            # Download the video
+            result = download_video(url)
+            
+            # Send response
+            self.send_response(200)
+            self.send_header('Content-type', 'application/json')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.send_header('Access-Control-Allow-Methods', 'POST, OPTIONS')
+            self.send_header('Access-Control-Allow-Headers', 'Content-Type')
+            self.end_headers()
+            
+            self.wfile.write(json.dumps(result).encode())
+            
+        except json.JSONDecodeError:
+            self.send_error_response("Invalid JSON data")
+        except Exception as e:
+            self.send_error_response(f"Server error: {str(e)}")
     
     def do_OPTIONS(self):
         # Handle CORS preflight requests
@@ -125,5 +173,5 @@ class handler(BaseHTTPRequestHandler):
         self.send_header('Access-Control-Allow-Origin', '*')
         self.end_headers()
         
-        error_response = {"error": message}
+        error_response = {"error": message, "success": False}
         self.wfile.write(json.dumps(error_response).encode()) 

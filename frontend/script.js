@@ -39,12 +39,24 @@ document.getElementById('download-form').addEventListener('submit', async functi
     
     const data = await response.json();
     
-    if (data.download_url) {
-      // Success - trigger download
-      showSuccessMessage('Download starting...');
+    if (data.success && data.download_url) {
+      // Success - show download info and trigger download
+      showSuccessMessage(`Downloading ${data.title} from ${data.platform}...`);
+      
+      // Create a temporary link to trigger download
+      const link = document.createElement('a');
+      link.href = data.download_url;
+      link.download = `${data.platform}_video.mp4`;
+      link.target = '_blank';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      // Show success message
       setTimeout(() => {
-        window.location.href = data.download_url;
-      }, 1000);
+        showSuccessMessage('Download completed! Check your downloads folder.');
+      }, 2000);
+      
     } else {
       // Error
       showErrorMessage(data.error || data.detail || 'Download failed. Please try again.');
@@ -73,7 +85,7 @@ function showSuccessMessage(message) {
   
   setTimeout(() => {
     notification.remove();
-  }, 3000);
+  }, 5000);
 }
 
 function showErrorMessage(message) {
@@ -84,7 +96,7 @@ function showErrorMessage(message) {
   
   setTimeout(() => {
     notification.remove();
-  }, 5000);
+  }, 7000);
 }
 
 // Add some interactive animations
@@ -99,6 +111,19 @@ document.addEventListener('DOMContentLoaded', function() {
     
     card.addEventListener('mouseleave', function() {
       this.style.transform = 'translateY(0)';
+    });
+  });
+  
+  // Add hover effects to platform badges
+  const platformBadges = document.querySelectorAll('.flex.flex-wrap > span');
+  platformBadges.forEach(badge => {
+    badge.addEventListener('mouseenter', function() {
+      this.style.transform = 'scale(1.05)';
+      this.style.transition = 'transform 0.2s ease';
+    });
+    
+    badge.addEventListener('mouseleave', function() {
+      this.style.transform = 'scale(1)';
     });
   });
   
