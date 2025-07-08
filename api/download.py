@@ -74,20 +74,17 @@ def download_instagram(url):
     """Download Instagram video using RapidAPI"""
     try:
         rapidapi_key = '164e51757bmsh7607ec502ddd08ap19830fjsnaee61ed9f238'
-        rapidapi_host = 'aio-instagram-downloader.p.rapidapi.com'
+        rapidapi_host = 'all-in-one-media-downloader-api.p.rapidapi.com'
         
         headers = {
             'x-rapidapi-key': rapidapi_key,
-            'x-rapidapi-host': rapidapi_host,
-            'Content-Type': 'application/json'
+            'x-rapidapi-host': rapidapi_host
         }
         
-        # Use POST request with JSON body
-        payload = {
-            'url': url
-        }
+        # Use GET request with URL parameter
+        params = {'url': url}
         
-        response = requests.post(f'https://{rapidapi_host}/api/v1/instagram', headers=headers, json=payload, timeout=30)
+        response = requests.get(f'https://{rapidapi_host}/download', headers=headers, params=params, timeout=30)
         
         print(f"Instagram API Response Status: {response.status_code}")
         
@@ -208,33 +205,18 @@ def download_youtube(url, quality_index=None):
         print(f"Input URL: {url}")
         print(f"Quality Index: {quality_index}")
         
-        # Extract video ID from URL
-        video_id = None
-        if 'youtube.com/watch?v=' in url:
-            video_id = url.split('v=')[-1].split('&')[0]
-        elif 'youtu.be/' in url:
-            video_id = url.split('youtu.be/')[-1].split('?')[0]
-        
-        print(f"Extracted Video ID: {video_id}")
-        
-        if not video_id:
-            return {"error": "Could not extract video ID from YouTube URL", "success": False}
-        
         rapidapi_key = '164e51757bmsh7607ec502ddd08ap19830fjsnaee61ed9f238'
-        rapidapi_host = 'snap-video3.p.rapidapi.com'
+        rapidapi_host = 'all-in-one-media-downloader-api.p.rapidapi.com'
         
         headers = {
             'x-rapidapi-key': rapidapi_key,
-            'x-rapidapi-host': rapidapi_host,
-            'Content-Type': 'application/x-www-form-urlencoded'
+            'x-rapidapi-host': rapidapi_host
         }
         
-        # Use POST request with form data (like TikTok)
-        payload = {
-            'url': url
-        }
+        # Use GET request with URL parameter
+        params = {'url': url}
         
-        response = requests.post(f'https://{rapidapi_host}/download', headers=headers, data=payload, timeout=30)
+        response = requests.get(f'https://{rapidapi_host}/download', headers=headers, params=params, timeout=30)
         
         print(f"YouTube API Response Status: {response.status_code}")
         
@@ -270,7 +252,6 @@ def download_youtube(url, quality_index=None):
                         "extension": "mp4"
                     },
                     "debug_info": {
-                        "video_id": video_id,
                         "api_host": rapidapi_host
                     }
                 }
@@ -375,7 +356,7 @@ class handler(BaseHTTPRequestHandler):
                     "test_url": test_url,
                     "result": result,
                     "message": "YouTube API test completed",
-                    "api_host": "snap-video3.p.rapidapi.com"
+                    "api_host": "all-in-one-media-downloader-api.p.rapidapi.com"
                 }
             except Exception as e:
                 response = {
@@ -383,7 +364,7 @@ class handler(BaseHTTPRequestHandler):
                     "test_url": test_url,
                     "error": str(e),
                     "message": "YouTube API test failed",
-                    "api_host": "snap-video3.p.rapidapi.com"
+                    "api_host": "all-in-one-media-downloader-api.p.rapidapi.com"
                 }
             
             self.wfile.write(json.dumps(response).encode())
@@ -432,9 +413,9 @@ class handler(BaseHTTPRequestHandler):
                 "download": "/api/download (POST)"
             },
             "apis": {
-                "youtube": "snap-video3.p.rapidapi.com",
+                "youtube": "all-in-one-media-downloader-api.p.rapidapi.com",
                 "tiktok": "tiktok-max-quality.p.rapidapi.com",
-                "instagram": "aio-instagram-downloader.p.rapidapi.com"
+                "instagram": "all-in-one-media-downloader-api.p.rapidapi.com"
             }
         }
         self.wfile.write(json.dumps(response).encode())
