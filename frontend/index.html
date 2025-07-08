@@ -149,7 +149,11 @@
       <img src="/static/logo.svg" alt="SnapGrabber Logo" class="w-8 h-8" onerror="this.style.display='none'">
       <h1 class="text-xl font-bold text-accent">SnapGrabber</h1>
     </div>
-    <button id="theme-toggle" class="ml-4 px-3 py-1 rounded bg-accent text-white font-semibold focus:outline-none hover:bg-accent transition-colors duration-200" aria-label="Toggle theme">☾</button>
+    <div class="flex items-center space-x-2">
+      <a href="/frontend/settings.html" class="ml-2 px-3 py-1 rounded bg-accent text-white font-semibold focus:outline-none hover:bg-accent transition-colors duration-200">Settings</a>
+      <a href="/frontend/info.html" class="ml-2 px-3 py-1 rounded bg-accent text-white font-semibold focus:outline-none hover:bg-accent transition-colors duration-200">Info</a>
+      <button id="theme-toggle" class="ml-4 px-3 py-1 rounded bg-accent text-white font-semibold focus:outline-none hover:bg-accent transition-colors duration-200" aria-label="Toggle theme">☾</button>
+    </div>
   </header>
   
   <!-- Ad Banner (top) -->
@@ -193,16 +197,22 @@
       <label for="url" class="block mb-4 font-semibold text-accent text-lg">Paste your video URL:</label>
       <input id="url" name="url" type="url" required 
              class="w-full p-4 border border-theme rounded-lg mb-6 bg-theme-tertiary text-theme-primary placeholder-theme-secondary focus:ring-2 focus:ring-accent focus:border-transparent transition-all duration-200" 
-             placeholder="https://www.tiktok.com/@user/video/... or Instagram/YouTube URL"
+             placeholder="Paste any supported video URL"
              autocomplete="off"
              spellcheck="false">
       <div id="quality-dropdown-container" style="display:none;" class="mb-6">
-        <label for="quality-dropdown" class="block mb-2 font-medium text-accent">Select YouTube Quality (with audio):</label>
+        <label for="quality-dropdown" class="block mb-2 font-medium text-accent">Select Quality:</label>
         <select id="quality-dropdown" class="w-full p-3 rounded-lg border border-theme bg-theme-tertiary text-theme-primary focus:ring-2 focus:ring-accent focus:border-transparent transition-all duration-200"></select>
+      </div>
+      <div id="audio-toggle-container" style="display:none;" class="mb-6">
+        <label class="flex items-center">
+          <input type="checkbox" id="audio-only-checkbox" class="mr-2">
+          <span class="text-accent">Audio only (MP3/Audio track)</span>
+        </label>
       </div>
       <button type="submit" 
               class="w-full bg-accent text-white py-4 rounded-lg hover:bg-accent font-bold transition-all duration-200 animate-pulse-slow hover:animate-none transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed">
-        <span id="button-text">Download Video</span>
+        <span id="button-text">Download</span>
         <span id="loading-spinner" class="hidden">
           <span class="animate-spin-slow inline-block mr-2">⏳</span>
           Processing...

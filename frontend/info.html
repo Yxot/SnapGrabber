@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Info - SnapGrabber</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-theme-primary text-theme-primary flex flex-col min-h-screen transition-colors duration-300">
+  <header class="p-4 bg-theme-secondary shadow flex justify-between items-center">
+    <div class="flex items-center space-x-3">
+      <img src="/static/logo.svg" alt="SnapGrabber Logo" class="w-8 h-8" onerror="this.style.display='none'">
+      <h1 class="text-xl font-bold text-accent">Info</h1>
+    </div>
+    <div class="flex items-center space-x-2">
+      <a href="/frontend/index.html" class="ml-2 px-3 py-1 rounded bg-accent text-white font-semibold focus:outline-none hover:bg-accent transition-colors duration-200">Home</a>
+      <a href="/frontend/settings.html" class="ml-2 px-3 py-1 rounded bg-accent text-white font-semibold focus:outline-none hover:bg-accent transition-colors duration-200">Settings</a>
+    </div>
+  </header>
+  <main class="flex-1 flex flex-col items-center justify-center px-4 py-8">
+    <div class="w-full max-w-2xl bg-theme-secondary border border-theme p-8 rounded-xl shadow-lg">
+      <h2 class="text-2xl font-bold mb-4 text-accent">About SnapGrabber</h2>
+      <p class="mb-4">SnapGrabber is a free, open-source video downloader inspired by <a href="https://github.com/imputnet/cobalt" class="text-accent underline" target="_blank">Cobalt</a>. Download videos from your favorite platforms in the best quality, with or without audio, and no watermarks.</p>
+      <h3 class="text-xl font-semibold mb-2 text-accent">Supported Platforms</h3>
+      <ul class="list-disc ml-6 mb-4 text-theme-secondary">
+        <li>TikTok</li>
+        <li>Instagram</li>
+        <li>YouTube</li>
+        <li>Twitter</li>
+        <li>Reddit</li>
+        <li>SoundCloud</li>
+        <li>Vimeo</li>
+        <li>and more...</li>
+      </ul>
+      <h3 class="text-xl font-semibold mb-2 text-accent">Credits</h3>
+      <ul class="list-disc ml-6 mb-4 text-theme-secondary">
+        <li>Powered by <a href="https://github.com/imputnet/cobalt" class="text-accent underline" target="_blank">Cobalt</a></li>
+        <li>Frontend: HTML, Tailwind CSS, JavaScript</li>
+        <li>Backend: Python (FastAPI)</li>
+      </ul>
+      <h3 class="text-xl font-semibold mb-2 text-accent">Privacy</h3>
+      <p class="mb-4">SnapGrabber does not track users or store any personal data. All downloads are processed in real-time and are not logged or cached.</p>
+      <div class="flex items-center mt-6">
+        <img src="https://cobalt.tools/favicon.ico" alt="Cobalt Logo" class="w-8 h-8 mr-2">
+        <span class="text-theme-secondary">Powered by Cobalt</span>
+      </div>
+    </div>
+  </main>
+  <footer class="p-6 text-center text-sm text-theme-secondary border-t border-theme">
+    <a href="/frontend/settings.html" class="text-accent hover:underline mx-2">Settings</a>
+  </footer>
+</body>
+</html> 

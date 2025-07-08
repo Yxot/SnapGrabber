@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Settings - SnapGrabber</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-theme-primary text-theme-primary flex flex-col min-h-screen transition-colors duration-300">
+  <header class="p-4 bg-theme-secondary shadow flex justify-between items-center">
+    <div class="flex items-center space-x-3">
+      <img src="/static/logo.svg" alt="SnapGrabber Logo" class="w-8 h-8" onerror="this.style.display='none'">
+      <h1 class="text-xl font-bold text-accent">Settings</h1>
+    </div>
+    <a href="/frontend/index.html" class="ml-2 px-3 py-1 rounded bg-accent text-white font-semibold focus:outline-none hover:bg-accent transition-colors duration-200">Home</a>
+  </header>
+  <main class="flex-1 flex flex-col items-center justify-center px-4 py-8">
+    <form id="settings-form" class="w-full max-w-md bg-theme-secondary border border-theme p-8 rounded-xl shadow-lg">
+      <h2 class="text-2xl font-bold mb-6 text-accent">Preferences</h2>
+      <div class="mb-6">
+        <label class="block mb-2 font-medium text-accent">Default Quality</label>
+        <select id="default-quality" class="w-full p-3 rounded-lg border border-theme bg-theme-tertiary text-theme-primary">
+          <option value="auto">Auto/Best</option>
+          <option value="manual">Let me choose</option>
+        </select>
+      </div>
+      <div class="mb-6">
+        <label class="flex items-center">
+          <input type="checkbox" id="default-audio-only" class="mr-2">
+          <span class="text-accent">Always download audio only</span>
+        </label>
+      </div>
+      <div class="mb-6">
+        <label class="flex items-center">
+          <input type="checkbox" id="dark-mode-toggle" class="mr-2">
+          <span class="text-accent">Dark mode</span>
+        </label>
+      </div>
+      <button type="submit" class="w-full bg-accent text-white py-3 rounded-lg font-bold hover:bg-accent transition-all duration-200">Save Settings</button>
+    </form>
+  </main>
+  <footer class="p-6 text-center text-sm text-theme-secondary border-t border-theme">
+    <a href="/frontend/info.html" class="text-accent hover:underline mx-2">Info</a>
+  </footer>
+  <script>
+    // Load and save settings from localStorage
+    document.addEventListener('DOMContentLoaded', function() {
+      const quality = localStorage.getItem('defaultQuality') || 'auto';
+      const audioOnly = localStorage.getItem('defaultAudioOnly') === 'true';
+      const darkMode = localStorage.getItem('darkMode') === 'true';
+      document.getElementById('default-quality').value = quality;
+      document.getElementById('default-audio-only').checked = audioOnly;
+      document.getElementById('dark-mode-toggle').checked = darkMode;
+      document.documentElement.classList.toggle('dark', darkMode);
+    });
+    document.getElementById('settings-form').addEventListener('submit', function(e) {
+      e.preventDefault();
+      localStorage.setItem('defaultQuality', document.getElementById('default-quality').value);
+      localStorage.setItem('defaultAudioOnly', document.getElementById('default-audio-only').checked);
+      localStorage.setItem('darkMode', document.getElementById('dark-mode-toggle').checked);
+      alert('Settings saved!');
+    });
+    document.getElementById('dark-mode-toggle').addEventListener('change', function() {
+      document.documentElement.classList.toggle('dark', this.checked);
+    });
+  </script>
+</body>
+</html> 
