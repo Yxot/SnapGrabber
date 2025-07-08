@@ -74,7 +74,7 @@ def download_instagram(url):
     """Download Instagram video using RapidAPI"""
     try:
         rapidapi_key = '164e51757bmsh7607ec502ddd08ap19830fjsnaee61ed9f238'
-        rapidapi_host = 'all-in-one-media-downloader-api.p.rapidapi.com'
+        rapidapi_host = 'instagram-api-media-downloader.p.rapidapi.com'
         
         headers = {
             'x-rapidapi-key': rapidapi_key,
@@ -205,18 +205,34 @@ def download_youtube(url, quality_index=None):
         print(f"Input URL: {url}")
         print(f"Quality Index: {quality_index}")
         
+        # Extract video ID from URL
+        video_id = None
+        if 'youtube.com/watch?v=' in url:
+            video_id = url.split('v=')[-1].split('&')[0]
+        elif 'youtu.be/' in url:
+            video_id = url.split('youtu.be/')[-1].split('?')[0]
+        
+        print(f"Extracted Video ID: {video_id}")
+        
+        if not video_id:
+            return {"error": "Could not extract video ID from YouTube URL", "success": False}
+        
         rapidapi_key = '164e51757bmsh7607ec502ddd08ap19830fjsnaee61ed9f238'
-        rapidapi_host = 'all-in-one-media-downloader-api.p.rapidapi.com'
+        rapidapi_host = 'youtube-api49.p.rapidapi.com'
         
         headers = {
             'x-rapidapi-key': rapidapi_key,
             'x-rapidapi-host': rapidapi_host
         }
         
-        # Use GET request with URL parameter
-        params = {'url': url}
+        # Use GET request with video ID parameter
+        params = {
+            'videoId': video_id,
+            'maxResults': '20',
+            'order': 'time'
+        }
         
-        response = requests.get(f'https://{rapidapi_host}/download', headers=headers, params=params, timeout=30)
+        response = requests.get(f'https://{rapidapi_host}/api/video/comments', headers=headers, params=params, timeout=30)
         
         print(f"YouTube API Response Status: {response.status_code}")
         
@@ -252,6 +268,7 @@ def download_youtube(url, quality_index=None):
                         "extension": "mp4"
                     },
                     "debug_info": {
+                        "video_id": video_id,
                         "api_host": rapidapi_host
                     }
                 }
@@ -356,7 +373,7 @@ class handler(BaseHTTPRequestHandler):
                     "test_url": test_url,
                     "result": result,
                     "message": "YouTube API test completed",
-                    "api_host": "all-in-one-media-downloader-api.p.rapidapi.com"
+                    "api_host": "youtube-api49.p.rapidapi.com"
                 }
             except Exception as e:
                 response = {
@@ -364,7 +381,7 @@ class handler(BaseHTTPRequestHandler):
                     "test_url": test_url,
                     "error": str(e),
                     "message": "YouTube API test failed",
-                    "api_host": "all-in-one-media-downloader-api.p.rapidapi.com"
+                    "api_host": "youtube-api49.p.rapidapi.com"
                 }
             
             self.wfile.write(json.dumps(response).encode())
@@ -413,9 +430,9 @@ class handler(BaseHTTPRequestHandler):
                 "download": "/api/download (POST)"
             },
             "apis": {
-                "youtube": "all-in-one-media-downloader-api.p.rapidapi.com",
+                "youtube": "youtube-api49.p.rapidapi.com",
                 "tiktok": "tiktok-max-quality.p.rapidapi.com",
-                "instagram": "all-in-one-media-downloader-api.p.rapidapi.com"
+                "instagram": "instagram-api-media-downloader.p.rapidapi.com"
             }
         }
         self.wfile.write(json.dumps(response).encode())
