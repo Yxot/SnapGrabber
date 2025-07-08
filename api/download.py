@@ -21,8 +21,66 @@ def detect_platform(url):
 def download_tiktok(url):
     """Download TikTok video using RapidAPI"""
     try:
+        # Extract video ID from URL
+        video_id = None
+        if 'video/' in url:
+            video_id = url.split('video/')[-1].split('?')[0]
+        elif 'v=' in url:
+            video_id = url.split('v=')[-1].split('&')[0]
+        
+        if not video_id:
+            return {"error": "Could not extract video ID from TikTok URL", "success": False}
+        
         rapidapi_key = '164e51757bmsh7607ec502ddd08ap19830fjsnaee61ed9f238'
-        rapidapi_host = 'tiktok-downloader-download-tiktok-videos-without-watermark.p.rapidapi.com'
+        rapidapi_host = 'tiktok-video-no-watermark2.p.rapidapi.com'
+        
+        headers = {
+            'x-rapidapi-key': rapidapi_key,
+            'x-rapidapi-host': rapidapi_host
+        }
+        
+        # Use the video download endpoint
+        params = {'url': url}
+        
+        response = requests.get(f'https://{rapidapi_host}/video/by-url', headers=headers, params=params, timeout=30)
+        
+        print(f"TikTok API Response Status: {response.status_code}")
+        
+        if response.status_code == 200:
+            data = response.json()
+            print(f"TikTok API Data: {data}")
+            
+            # Extract video URL from response
+            video_url = None
+            if isinstance(data, dict):
+                if 'data' in data and 'play' in data['data']:
+                    video_url = data['data']['play']
+                elif 'video_data' in data and 'play' in data['video_data']:
+                    video_url = data['video_data']['play']
+                elif 'url' in data:
+                    video_url = data['url']
+                elif 'download_url' in data:
+                    video_url = data['download_url']
+            
+            if video_url:
+                return {
+                    "download_url": video_url,
+                    "title": data.get('data', {}).get('title', 'TikTok Video'),
+                    "platform": "tiktok",
+                    "success": True
+                }
+        
+        return {"error": "Failed to extract TikTok video", "success": False}
+        
+    except Exception as e:
+        print(f"TikTok download error: {str(e)}")
+        return {"error": f"TikTok download error: {str(e)}", "success": False}
+
+def download_instagram(url):
+    """Download Instagram video using RapidAPI"""
+    try:
+        rapidapi_key = '164e51757bmsh7607ec502ddd08ap19830fjsnaee61ed9f238'
+        rapidapi_host = 'instagram-reels-downloader-api.p.rapidapi.com'
         
         headers = {
             'x-rapidapi-key': rapidapi_key,
@@ -31,48 +89,23 @@ def download_tiktok(url):
         
         params = {'url': url}
         
-        response = requests.get(f'https://{rapidapi_host}/v1/index', headers=headers, params=params, timeout=30)
+        response = requests.get(f'https://{rapidapi_host}/download', headers=headers, params=params, timeout=30)
+        
+        print(f"Instagram API Response Status: {response.status_code}")
         
         if response.status_code == 200:
             data = response.json()
-            if 'data' in data and 'nwm_video_url' in data['data']:
-                return {
-                    "download_url": data['data']['nwm_video_url'],
-                    "title": data['data'].get('title', 'TikTok Video'),
-                    "platform": "tiktok",
-                    "success": True
-                }
-        
-        return {"error": "Failed to extract TikTok video", "success": False}
-        
-    except Exception as e:
-        return {"error": f"TikTok download error: {str(e)}", "success": False}
-
-def download_instagram(url):
-    """Download Instagram video using RapidAPI"""
-    try:
-        rapidapi_key = '164e51757bmsh7607ec502ddd08ap19830fjsnaee61ed9f238'
-        rapidapi_host = 'instagram-downloader-download-instagram-videos-stories1.p.rapidapi.com'
-        
-        headers = {
-            'x-rapidapi-key': rapidapi_key,
-            'x-rapidapi-host': rapidapi_host
-        }
-        
-        params = {'Userinfo': url}
-        
-        response = requests.get(f'https://{rapidapi_host}/', headers=headers, params=params, timeout=30)
-        
-        if response.status_code == 200:
-            data = response.json()
+            print(f"Instagram API Data: {data}")
             
-            # Try different response formats
+            # Extract video URL from response
             video_url = None
             if isinstance(data, dict):
-                if 'video_url' in data:
-                    video_url = data['video_url']
+                if 'video' in data:
+                    video_url = data['video']
                 elif 'url' in data:
                     video_url = data['url']
+                elif 'download_url' in data:
+                    video_url = data['download_url']
                 elif 'media' in data and isinstance(data['media'], list) and len(data['media']) > 0:
                     video_url = data['media'][0].get('url') or data['media'][0].get('video_url')
             
@@ -87,23 +120,40 @@ def download_instagram(url):
         return {"error": "Failed to extract Instagram video", "success": False}
         
     except Exception as e:
+        print(f"Instagram download error: {str(e)}")
         return {"error": f"Instagram download error: {str(e)}", "success": False}
 
 def download_youtube(url):
-    """Download YouTube video using a more reliable API"""
+    """Download YouTube video using RapidAPI"""
     try:
+        # Extract video ID from URL
+        video_id = None
+        if 'youtube.com/watch?v=' in url:
+            video_id = url.split('v=')[-1].split('&')[0]
+        elif 'youtu.be/' in url:
+            video_id = url.split('youtu.be/')[-1].split('?')[0]
+        
+        if not video_id:
+            return {"error": "Could not extract video ID from YouTube URL", "success": False}
+        
         rapidapi_key = '164e51757bmsh7607ec502ddd08ap19830fjsnaee61ed9f238'
-        rapidapi_host = 'youtube-dl-api.p.rapidapi.com'
+        rapidapi_host = 'youtube-media-downloader.p.rapidapi.com'
         
         headers = {
             'x-rapidapi-key': rapidapi_key,
             'x-rapidapi-host': rapidapi_host
         }
         
-        params = {'url': url}
+        # Use the video details endpoint
+        params = {
+            'videoId': video_id,
+            'urlAccess': 'normal',
+            'videos': 'auto',
+            'audios': 'auto'
+        }
         
-        print(f"Trying YouTube API with host: {rapidapi_host}")
-        response = requests.get(f'https://{rapidapi_host}/dl', headers=headers, params=params, timeout=30)
+        print(f"Trying YouTube API with video ID: {video_id}")
+        response = requests.get(f'https://{rapidapi_host}/v2/video/details', headers=headers, params=params, timeout=30)
         
         print(f"YouTube API Response Status: {response.status_code}")
         
@@ -111,20 +161,18 @@ def download_youtube(url):
             data = response.json()
             print(f"YouTube API Data: {data}")
             
-            # Try to extract video URL from response
+            # Extract video URL from response
             video_url = None
             if isinstance(data, dict):
-                if 'url' in data:
+                if 'videos' in data and isinstance(data['videos'], list) and len(data['videos']) > 0:
+                    # Get the best quality video
+                    video_url = data['videos'][0].get('url')
+                elif 'url' in data:
                     video_url = data['url']
-                elif 'link' in data:
-                    video_url = data['link']
                 elif 'download_url' in data:
                     video_url = data['download_url']
                 elif 'video_url' in data:
                     video_url = data['video_url']
-                elif 'formats' in data and isinstance(data['formats'], list) and len(data['formats']) > 0:
-                    # Get the best quality format
-                    video_url = data['formats'][0].get('url')
             
             if video_url:
                 return {
@@ -134,49 +182,11 @@ def download_youtube(url):
                     "success": True
                 }
         
-        # If the above fails, try a different approach
-        return download_youtube_simple(url)
+        return {"error": "Failed to extract YouTube video", "success": False}
         
     except Exception as e:
         print(f"YouTube download error: {str(e)}")
-        return download_youtube_simple(url)
-
-def download_youtube_simple(url):
-    """Simple YouTube download using a different API"""
-    try:
-        rapidapi_key = '164e51757bmsh7607ec502ddd08ap19830fjsnaee61ed9f238'
-        rapidapi_host = 'youtube-mp36.p.rapidapi.com'
-        
-        headers = {
-            'x-rapidapi-key': rapidapi_key,
-            'x-rapidapi-host': rapidapi_host
-        }
-        
-        params = {'url': url}
-        
-        print(f"Trying simple YouTube API with host: {rapidapi_host}")
-        response = requests.get(f'https://{rapidapi_host}/dl', headers=headers, params=params, timeout=30)
-        
-        print(f"Simple YouTube API Response Status: {response.status_code}")
-        
-        if response.status_code == 200:
-            data = response.json()
-            print(f"Simple YouTube API Data: {data}")
-            
-            if 'link' in data:
-                return {
-                    "download_url": data['link'],
-                    "title": data.get('title', 'YouTube Video'),
-                    "platform": "youtube",
-                    "success": True
-                }
-        
-        # If all APIs fail, return a helpful error
-        return {"error": "YouTube video download is temporarily unavailable. Please try again later.", "success": False}
-        
-    except Exception as e:
-        print(f"Simple YouTube download error: {str(e)}")
-        return {"error": "YouTube download service is currently unavailable", "success": False}
+        return {"error": f"YouTube download error: {str(e)}", "success": False}
 
 def download_video(url):
     """Main download function that routes to platform-specific handlers"""
@@ -229,14 +239,16 @@ class handler(BaseHTTPRequestHandler):
                     "status": "Test completed",
                     "test_url": test_url,
                     "result": result,
-                    "message": "YouTube API test completed"
+                    "message": "YouTube API test completed",
+                    "api_host": "youtube-media-downloader.p.rapidapi.com"
                 }
             except Exception as e:
                 response = {
                     "status": "Test failed",
                     "test_url": test_url,
                     "error": str(e),
-                    "message": "YouTube API test failed"
+                    "message": "YouTube API test failed",
+                    "api_host": "youtube-media-downloader.p.rapidapi.com"
                 }
             
             self.wfile.write(json.dumps(response).encode())
@@ -252,8 +264,13 @@ class handler(BaseHTTPRequestHandler):
             "status": "API is working", 
             "message": "SnapGrabber API is online",
             "supported_platforms": ["tiktok", "instagram", "youtube"],
-            "version": "1.0.0",
-            "test_endpoint": "/api/download/test"
+            "version": "2.0.0",
+            "test_endpoint": "/api/download/test",
+            "apis": {
+                "youtube": "youtube-media-downloader.p.rapidapi.com",
+                "tiktok": "tiktok-video-no-watermark2.p.rapidapi.com",
+                "instagram": "instagram-reels-downloader-api.p.rapidapi.com"
+            }
         }
         self.wfile.write(json.dumps(response).encode())
     
