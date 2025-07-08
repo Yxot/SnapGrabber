@@ -123,10 +123,10 @@ def download_instagram(url):
         print(f"Instagram download error: {str(e)}")
         return {"error": f"Instagram download error: {str(e)}", "success": False}
 
-def download_youtube(url):
-    """Download YouTube video using RapidAPI with comprehensive debugging"""
+def get_youtube_qualities(url):
+    """Get all available quality options for a YouTube video"""
     try:
-        print(f"=== YOUTUBE DOWNLOAD DEBUG ===")
+        print(f"=== YOUTUBE QUALITIES DEBUG ===")
         print(f"Input URL: {url}")
         
         # Extract video ID from URL
@@ -149,129 +149,150 @@ def download_youtube(url):
             'x-rapidapi-host': rapidapi_host
         }
         
-        # Try multiple endpoints
-        endpoints_to_try = [
-            {
-                'url': f'https://{rapidapi_host}/v2/video/details',
-                'params': {
-                    'videoId': video_id,
-                    'urlAccess': 'normal',
-                    'videos': 'auto',
-                    'audios': 'auto'
-                }
-            },
-            {
-                'url': f'https://{rapidapi_host}/v2/video/details',
-                'params': {
-                    'videoId': video_id
-                }
-            },
-            {
-                'url': f'https://{rapidapi_host}/dl',
-                'params': {
-                    'url': url
-                }
-            }
-        ]
+        # Get video details
+        params = {
+            'videoId': video_id,
+            'urlAccess': 'normal',
+            'videos': 'auto',
+            'audios': 'auto'
+        }
         
-        for i, endpoint in enumerate(endpoints_to_try):
-            print(f"\n--- Trying Endpoint {i+1} ---")
-            print(f"URL: {endpoint['url']}")
-            print(f"Params: {endpoint['params']}")
+        response = requests.get(f'https://{rapidapi_host}/v2/video/details', headers=headers, params=params, timeout=30)
+        
+        if response.status_code == 200:
+            data = response.json()
             
-            try:
-                response = requests.get(endpoint['url'], headers=headers, params=endpoint['params'], timeout=30)
-                print(f"Response Status: {response.status_code}")
-                print(f"Response Headers: {dict(response.headers)}")
+            # Extract video qualities
+            qualities = []
+            if 'videos' in data and 'items' in data['videos'] and isinstance(data['videos']['items'], list):
+                video_items = data['videos']['items']
                 
-                if response.status_code == 200:
-                    data = response.json()
-                    print(f"Response Data: {json.dumps(data, indent=2)}")
-                    
-                    # Try to extract video URL from response
-                    video_url = None
-                    
-                    # Method 1: Check for videos.items array (new API structure)
-                    if 'videos' in data and 'items' in data['videos'] and isinstance(data['videos']['items'], list) and len(data['videos']['items']) > 0:
-                        # Get the best quality video with audio
-                        video_items = data['videos']['items']
-                        best_video = None
-                        
-                        # First try to find a video with audio
-                        for video in video_items:
-                            if video.get('hasAudio', False):
-                                best_video = video
-                                break
-                        
-                        # If no video with audio, take the first one
-                        if not best_video and video_items:
-                            best_video = video_items[0]
-                        
-                        if best_video:
-                            video_url = best_video.get('url')
-                            print(f"Found video URL in videos.items array: {video_url}")
-                            print(f"Video quality: {best_video.get('quality', 'unknown')}")
-                            print(f"Video size: {best_video.get('sizeText', 'unknown')}")
-                    
-                    # Method 2: Check for direct videos array (fallback)
-                    elif 'videos' in data and isinstance(data['videos'], list) and len(data['videos']) > 0:
-                        video_url = data['videos'][0].get('url')
-                        print(f"Found video URL in videos array: {video_url}")
-                    
-                    # Method 3: Check for direct URL fields
-                    elif 'url' in data:
-                        video_url = data['url']
-                        print(f"Found video URL in url field: {video_url}")
-                    
-                    # Method 4: Check for download_url
-                    elif 'download_url' in data:
-                        video_url = data['download_url']
-                        print(f"Found video URL in download_url field: {video_url}")
-                    
-                    # Method 5: Check for video_url
-                    elif 'video_url' in data:
-                        video_url = data['video_url']
-                        print(f"Found video URL in video_url field: {video_url}")
-                    
-                    # Method 6: Check for link
-                    elif 'link' in data:
-                        video_url = data['link']
-                        print(f"Found video URL in link field: {video_url}")
-                    
-                    # Method 7: Check for formats array
-                    elif 'formats' in data and isinstance(data['formats'], list) and len(data['formats']) > 0:
-                        video_url = data['formats'][0].get('url')
-                        print(f"Found video URL in formats array: {video_url}")
-                    
-                    if video_url:
-                        print(f"SUCCESS: Found video URL: {video_url}")
-                        return {
-                            "download_url": video_url,
-                            "title": data.get('title', 'YouTube Video'),
-                            "platform": "youtube",
-                            "success": True,
-                            "debug_info": {
-                                "video_id": video_id,
-                                "endpoint_used": f"endpoint_{i+1}",
-                                "api_host": rapidapi_host,
-                                "video_quality": best_video.get('quality', 'unknown') if 'best_video' in locals() else 'unknown',
-                                "video_size": best_video.get('sizeText', 'unknown') if 'best_video' in locals() else 'unknown'
-                            }
-                        }
-                    else:
-                        print("No video URL found in response")
+                for i, video in enumerate(video_items):
+                    quality_info = {
+                        "index": i,
+                        "quality": video.get('quality', 'unknown'),
+                        "size": video.get('sizeText', 'unknown'),
+                        "width": video.get('width', 0),
+                        "height": video.get('height', 0),
+                        "has_audio": video.get('hasAudio', False),
+                        "extension": video.get('extension', 'mp4'),
+                        "mime_type": video.get('mimeType', ''),
+                        "url": video.get('url', '')
+                    }
+                    qualities.append(quality_info)
+            
+            # Sort qualities by resolution (height)
+            qualities.sort(key=lambda x: x['height'], reverse=True)
+            
+            return {
+                "success": True,
+                "title": data.get('title', 'YouTube Video'),
+                "platform": "youtube",
+                "video_id": video_id,
+                "qualities": qualities,
+                "total_qualities": len(qualities)
+            }
+        else:
+            return {"error": f"API returned error status: {response.status_code}", "success": False}
+            
+    except Exception as e:
+        print(f"YouTube qualities error: {str(e)}")
+        return {"error": f"YouTube qualities error: {str(e)}", "success": False}
+
+def download_youtube(url, quality_index=None):
+    """Download YouTube video using RapidAPI with quality selection"""
+    try:
+        print(f"=== YOUTUBE DOWNLOAD DEBUG ===")
+        print(f"Input URL: {url}")
+        print(f"Quality Index: {quality_index}")
+        
+        # Extract video ID from URL
+        video_id = None
+        if 'youtube.com/watch?v=' in url:
+            video_id = url.split('v=')[-1].split('&')[0]
+        elif 'youtu.be/' in url:
+            video_id = url.split('youtu.be/')[-1].split('?')[0]
+        
+        print(f"Extracted Video ID: {video_id}")
+        
+        if not video_id:
+            return {"error": "Could not extract video ID from YouTube URL", "success": False}
+        
+        rapidapi_key = '164e51757bmsh7607ec502ddd08ap19830fjsnaee61ed9f238'
+        rapidapi_host = 'youtube-media-downloader.p.rapidapi.com'
+        
+        headers = {
+            'x-rapidapi-key': rapidapi_key,
+            'x-rapidapi-host': rapidapi_host
+        }
+        
+        # Get video details
+        params = {
+            'videoId': video_id,
+            'urlAccess': 'normal',
+            'videos': 'auto',
+            'audios': 'auto'
+        }
+        
+        response = requests.get(f'https://{rapidapi_host}/v2/video/details', headers=headers, params=params, timeout=30)
+        
+        if response.status_code == 200:
+            data = response.json()
+            
+            # Extract video URL based on quality selection
+            video_url = None
+            selected_quality = None
+            
+            if 'videos' in data and 'items' in data['videos'] and isinstance(data['videos']['items'], list):
+                video_items = data['videos']['items']
+                
+                if quality_index is not None and 0 <= quality_index < len(video_items):
+                    # Use specified quality
+                    selected_quality = video_items[quality_index]
+                    video_url = selected_quality.get('url')
+                    print(f"Selected quality {quality_index}: {selected_quality.get('quality', 'unknown')}")
                 else:
-                    print(f"API returned error status: {response.status_code}")
-                    print(f"Error response: {response.text}")
+                    # Auto-select best quality with audio
+                    best_video = None
+                    for video in video_items:
+                        if video.get('hasAudio', False):
+                            best_video = video
+                            break
                     
-            except Exception as e:
-                print(f"Error with endpoint {i+1}: {str(e)}")
-                continue
-        
-        # If all endpoints fail, try a fallback API
-        print("\n--- Trying Fallback API ---")
-        return download_youtube_fallback(url)
-        
+                    if not best_video and video_items:
+                        best_video = video_items[0]
+                    
+                    if best_video:
+                        selected_quality = best_video
+                        video_url = best_video.get('url')
+                        print(f"Auto-selected quality: {best_video.get('quality', 'unknown')}")
+            
+            if video_url:
+                print(f"SUCCESS: Found video URL: {video_url}")
+                return {
+                    "download_url": video_url,
+                    "title": data.get('title', 'YouTube Video'),
+                    "platform": "youtube",
+                    "success": True,
+                    "quality_info": {
+                        "quality": selected_quality.get('quality', 'unknown') if selected_quality else 'unknown',
+                        "size": selected_quality.get('sizeText', 'unknown') if selected_quality else 'unknown',
+                        "width": selected_quality.get('width', 0) if selected_quality else 0,
+                        "height": selected_quality.get('height', 0) if selected_quality else 0,
+                        "has_audio": selected_quality.get('hasAudio', False) if selected_quality else False,
+                        "extension": selected_quality.get('extension', 'mp4') if selected_quality else 'mp4'
+                    },
+                    "debug_info": {
+                        "video_id": video_id,
+                        "api_host": rapidapi_host,
+                        "quality_index": quality_index
+                    }
+                }
+            else:
+                return {"error": "No video URL found in response", "success": False}
+        else:
+            return {"error": f"API returned error status: {response.status_code}", "success": False}
+            
     except Exception as e:
         print(f"YouTube download error: {str(e)}")
         return {"error": f"YouTube download error: {str(e)}", "success": False}
@@ -315,10 +336,11 @@ def download_youtube_fallback(url):
         print(f"Fallback YouTube download error: {str(e)}")
         return {"error": f"YouTube download failed: {str(e)}", "success": False}
 
-def download_video(url):
+def download_video(url, quality_index=None):
     """Main download function that routes to platform-specific handlers"""
     try:
         print(f"Starting download for URL: {url}")
+        print(f"Quality Index: {quality_index}")
         
         # Validate URL format
         if not url.startswith(('http://', 'https://')):
@@ -340,7 +362,7 @@ def download_video(url):
             return download_instagram(url)
         elif platform == 'youtube':
             print("Routing to YouTube downloader")
-            return download_youtube(url)
+            return download_youtube(url, quality_index)
         else:
             return {"error": "Platform not supported", "success": False}
             
@@ -350,7 +372,7 @@ def download_video(url):
 
 class handler(BaseHTTPRequestHandler):
     def do_GET(self):
-        """Test endpoint to check if API is working"""
+        """Handle GET requests for API status and quality options"""
         # Check if this is a test request
         if self.path.startswith('/api/download/test'):
             self.send_response(200)
@@ -381,6 +403,32 @@ class handler(BaseHTTPRequestHandler):
             self.wfile.write(json.dumps(response).encode())
             return
         
+        # Check if this is a qualities request
+        if self.path.startswith('/api/download/qualities'):
+            self.send_response(200)
+            self.send_header('Content-type', 'application/json')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            
+            # Parse URL parameters
+            from urllib.parse import urlparse, parse_qs
+            parsed_url = urlparse(self.path)
+            params = parse_qs(parsed_url.query)
+            url = params.get('url', [None])[0]
+            
+            if not url:
+                response = {"error": "URL parameter is required", "success": False}
+            else:
+                # Get qualities for the URL
+                platform = detect_platform(url)
+                if platform == 'youtube':
+                    response = get_youtube_qualities(url)
+                else:
+                    response = {"error": "Quality selection only available for YouTube videos", "success": False}
+            
+            self.wfile.write(json.dumps(response).encode())
+            return
+        
         # Regular status endpoint
         self.send_response(200)
         self.send_header('Content-type', 'application/json')
@@ -392,7 +440,11 @@ class handler(BaseHTTPRequestHandler):
             "message": "SnapGrabber API is online",
             "supported_platforms": ["tiktok", "instagram", "youtube"],
             "version": "2.0.0",
-            "test_endpoint": "/api/download/test",
+            "endpoints": {
+                "test": "/api/download/test",
+                "qualities": "/api/download/qualities?url=YOUR_URL",
+                "download": "/api/download (POST)"
+            },
             "apis": {
                 "youtube": "youtube-media-downloader.p.rapidapi.com",
                 "tiktok": "tiktok-video-no-watermark2.p.rapidapi.com",
@@ -424,7 +476,9 @@ class handler(BaseHTTPRequestHandler):
                 return
                 
             url = data.get('url', '').strip()
+            quality_index = data.get('quality_index')
             print(f"Extracted URL: {url}")
+            print(f"Quality Index: {quality_index}")
             
             # Validate URL
             if not url:
@@ -432,9 +486,16 @@ class handler(BaseHTTPRequestHandler):
                 self.send_error_response("URL is required")
                 return
             
+            # Convert quality_index to integer if provided
+            if quality_index is not None:
+                try:
+                    quality_index = int(quality_index)
+                except (ValueError, TypeError):
+                    quality_index = None
+            
             # Download the video
             print("Starting video download")
-            result = download_video(url)
+            result = download_video(url, quality_index)
             print(f"Download result: {result}")
             
             # Send response
