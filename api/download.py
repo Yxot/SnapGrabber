@@ -124,14 +124,19 @@ def download_instagram(url):
         return {"error": f"Instagram download error: {str(e)}", "success": False}
 
 def download_youtube(url):
-    """Download YouTube video using RapidAPI"""
+    """Download YouTube video using RapidAPI with comprehensive debugging"""
     try:
+        print(f"=== YOUTUBE DOWNLOAD DEBUG ===")
+        print(f"Input URL: {url}")
+        
         # Extract video ID from URL
         video_id = None
         if 'youtube.com/watch?v=' in url:
             video_id = url.split('v=')[-1].split('&')[0]
         elif 'youtu.be/' in url:
             video_id = url.split('youtu.be/')[-1].split('?')[0]
+        
+        print(f"Extracted Video ID: {video_id}")
         
         if not video_id:
             return {"error": "Could not extract video ID from YouTube URL", "success": False}
@@ -144,49 +149,147 @@ def download_youtube(url):
             'x-rapidapi-host': rapidapi_host
         }
         
-        # Use the video details endpoint
-        params = {
-            'videoId': video_id,
-            'urlAccess': 'normal',
-            'videos': 'auto',
-            'audios': 'auto'
-        }
-        
-        print(f"Trying YouTube API with video ID: {video_id}")
-        response = requests.get(f'https://{rapidapi_host}/v2/video/details', headers=headers, params=params, timeout=30)
-        
-        print(f"YouTube API Response Status: {response.status_code}")
-        
-        if response.status_code == 200:
-            data = response.json()
-            print(f"YouTube API Data: {data}")
-            
-            # Extract video URL from response
-            video_url = None
-            if isinstance(data, dict):
-                if 'videos' in data and isinstance(data['videos'], list) and len(data['videos']) > 0:
-                    # Get the best quality video
-                    video_url = data['videos'][0].get('url')
-                elif 'url' in data:
-                    video_url = data['url']
-                elif 'download_url' in data:
-                    video_url = data['download_url']
-                elif 'video_url' in data:
-                    video_url = data['video_url']
-            
-            if video_url:
-                return {
-                    "download_url": video_url,
-                    "title": data.get('title', 'YouTube Video'),
-                    "platform": "youtube",
-                    "success": True
+        # Try multiple endpoints
+        endpoints_to_try = [
+            {
+                'url': f'https://{rapidapi_host}/v2/video/details',
+                'params': {
+                    'videoId': video_id,
+                    'urlAccess': 'normal',
+                    'videos': 'auto',
+                    'audios': 'auto'
                 }
+            },
+            {
+                'url': f'https://{rapidapi_host}/v2/video/details',
+                'params': {
+                    'videoId': video_id
+                }
+            },
+            {
+                'url': f'https://{rapidapi_host}/dl',
+                'params': {
+                    'url': url
+                }
+            }
+        ]
         
-        return {"error": "Failed to extract YouTube video", "success": False}
+        for i, endpoint in enumerate(endpoints_to_try):
+            print(f"\n--- Trying Endpoint {i+1} ---")
+            print(f"URL: {endpoint['url']}")
+            print(f"Params: {endpoint['params']}")
+            
+            try:
+                response = requests.get(endpoint['url'], headers=headers, params=endpoint['params'], timeout=30)
+                print(f"Response Status: {response.status_code}")
+                print(f"Response Headers: {dict(response.headers)}")
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    print(f"Response Data: {json.dumps(data, indent=2)}")
+                    
+                    # Try to extract video URL from response
+                    video_url = None
+                    
+                    # Method 1: Check for videos array
+                    if 'videos' in data and isinstance(data['videos'], list) and len(data['videos']) > 0:
+                        video_url = data['videos'][0].get('url')
+                        print(f"Found video URL in videos array: {video_url}")
+                    
+                    # Method 2: Check for direct URL fields
+                    elif 'url' in data:
+                        video_url = data['url']
+                        print(f"Found video URL in url field: {video_url}")
+                    
+                    # Method 3: Check for download_url
+                    elif 'download_url' in data:
+                        video_url = data['download_url']
+                        print(f"Found video URL in download_url field: {video_url}")
+                    
+                    # Method 4: Check for video_url
+                    elif 'video_url' in data:
+                        video_url = data['video_url']
+                        print(f"Found video URL in video_url field: {video_url}")
+                    
+                    # Method 5: Check for link
+                    elif 'link' in data:
+                        video_url = data['link']
+                        print(f"Found video URL in link field: {video_url}")
+                    
+                    # Method 6: Check for formats array
+                    elif 'formats' in data and isinstance(data['formats'], list) and len(data['formats']) > 0:
+                        video_url = data['formats'][0].get('url')
+                        print(f"Found video URL in formats array: {video_url}")
+                    
+                    if video_url:
+                        print(f"SUCCESS: Found video URL: {video_url}")
+                        return {
+                            "download_url": video_url,
+                            "title": data.get('title', 'YouTube Video'),
+                            "platform": "youtube",
+                            "success": True,
+                            "debug_info": {
+                                "video_id": video_id,
+                                "endpoint_used": f"endpoint_{i+1}",
+                                "api_host": rapidapi_host
+                            }
+                        }
+                    else:
+                        print("No video URL found in response")
+                else:
+                    print(f"API returned error status: {response.status_code}")
+                    print(f"Error response: {response.text}")
+                    
+            except Exception as e:
+                print(f"Error with endpoint {i+1}: {str(e)}")
+                continue
+        
+        # If all endpoints fail, try a fallback API
+        print("\n--- Trying Fallback API ---")
+        return download_youtube_fallback(url)
         
     except Exception as e:
         print(f"YouTube download error: {str(e)}")
         return {"error": f"YouTube download error: {str(e)}", "success": False}
+
+def download_youtube_fallback(url):
+    """Fallback YouTube download using a different API"""
+    try:
+        print("Using fallback YouTube API")
+        rapidapi_key = '164e51757bmsh7607ec502ddd08ap19830fjsnaee61ed9f238'
+        rapidapi_host = 'youtube-mp36.p.rapidapi.com'
+        
+        headers = {
+            'x-rapidapi-key': rapidapi_key,
+            'x-rapidapi-host': rapidapi_host
+        }
+        
+        params = {'url': url}
+        
+        response = requests.get(f'https://{rapidapi_host}/dl', headers=headers, params=params, timeout=30)
+        print(f"Fallback API Response Status: {response.status_code}")
+        
+        if response.status_code == 200:
+            data = response.json()
+            print(f"Fallback API Data: {data}")
+            
+            if 'link' in data:
+                return {
+                    "download_url": data['link'],
+                    "title": data.get('title', 'YouTube Video'),
+                    "platform": "youtube",
+                    "success": True,
+                    "debug_info": {
+                        "api_host": rapidapi_host,
+                        "method": "fallback"
+                    }
+                }
+        
+        return {"error": "All YouTube APIs failed to extract video", "success": False}
+        
+    except Exception as e:
+        print(f"Fallback YouTube download error: {str(e)}")
+        return {"error": f"YouTube download failed: {str(e)}", "success": False}
 
 def download_video(url):
     """Main download function that routes to platform-specific handlers"""

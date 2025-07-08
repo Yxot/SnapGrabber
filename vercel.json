@@ -28,6 +28,10 @@
       "dest": "/api/test.py"
     },
     {
+      "src": "/api/debug",
+      "dest": "/api/debug.py"
+    },
+    {
       "src": "/api/(.*)",
       "dest": "/api/$1"
     },
