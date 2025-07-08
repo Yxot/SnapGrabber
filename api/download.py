@@ -71,53 +71,35 @@ def download_tiktok(url):
         return {"error": f"TikTok download error: {str(e)}", "success": False}
 
 def download_instagram(url):
-    """Download Instagram video using RapidAPI"""
+    """Download Instagram video using FastSaver API"""
     try:
-        rapidapi_key = '164e51757bmsh7607ec502ddd08ap19830fjsnaee61ed9f238'
-        rapidapi_host = 'instagram-api-media-downloader.p.rapidapi.com'
-        
-        headers = {
-            'x-rapidapi-key': rapidapi_key,
-            'x-rapidapi-host': rapidapi_host
+        print(f"=== INSTAGRAM DOWNLOAD DEBUG ===")
+        print(f"Input URL: {url}")
+        token = 'oQfpqNpUtFT4pl10wt4330YQ'
+        api_url = 'https://fastsaverapi.com/download'
+        params = {
+            'video_id': url,  # For Instagram, pass the full URL as video_id
+            'format': '',
+            'bot_username': '',
+            'token': token
         }
-        
-        # Use GET request with URL parameter
-        params = {'url': url}
-        
-        response = requests.get(f'https://{rapidapi_host}/download', headers=headers, params=params, timeout=30)
-        
-        print(f"Instagram API Response Status: {response.status_code}")
-        
+        response = requests.get(api_url, params=params, timeout=30)
+        print(f"FastSaver API Response Status: {response.status_code}")
         if response.status_code == 200:
             data = response.json()
-            print(f"Instagram API Data: {data}")
-            
-            # Extract video URL from response
-            video_url = None
-            if isinstance(data, dict):
-                if 'url' in data:
-                    video_url = data['url']
-                elif 'download_url' in data:
-                    video_url = data['download_url']
-                elif 'video_url' in data:
-                    video_url = data['video_url']
-                elif 'link' in data:
-                    video_url = data['link']
-                elif 'data' in data and isinstance(data['data'], dict):
-                    video_url = data['data'].get('url') or data['data'].get('download_url')
-            
+            print(f"FastSaver API Data: {data}")
+            video_url = data.get('download_url') or data.get('url') or data.get('link')
             if video_url:
                 return {
                     "download_url": video_url,
-                    "title": data.get('title', data.get('data', {}).get('title', 'Instagram Video')),
+                    "title": data.get('title', 'Instagram Video'),
                     "platform": "instagram",
                     "success": True
                 }
             else:
-                return {"error": f"Instagram API did not return a valid video URL. Raw response: {json.dumps(data)}", "success": False}
+                return {"error": f"FastSaver API did not return a valid video URL. Raw response: {json.dumps(data)}", "success": False}
         else:
-            return {"error": f"Instagram API error: {response.status_code} {response.text}", "success": False}
-        
+            return {"error": f"FastSaver API error: {response.status_code} {response.text}", "success": False}
     except Exception as e:
         print(f"Instagram download error: {str(e)}")
         return {"error": f"Instagram download error: {str(e)}", "success": False}
@@ -199,7 +181,7 @@ def get_youtube_qualities(url):
         return {"error": f"YouTube qualities error: {str(e)}", "success": False}
 
 def download_youtube(url, quality_index=None):
-    """Download YouTube video using RapidAPI with quality selection"""
+    """Download YouTube video using FastSaver API"""
     try:
         print(f"=== YOUTUBE DOWNLOAD DEBUG ===")
         print(f"Input URL: {url}")
@@ -217,66 +199,31 @@ def download_youtube(url, quality_index=None):
         if not video_id:
             return {"error": "Could not extract video ID from YouTube URL", "success": False}
         
-        rapidapi_key = '164e51757bmsh7607ec502ddd08ap19830fjsnaee61ed9f238'
-        rapidapi_host = 'youtube-api49.p.rapidapi.com'
-        
-        headers = {
-            'x-rapidapi-key': rapidapi_key,
-            'x-rapidapi-host': rapidapi_host
-        }
-        
-        # Use GET request with video ID parameter
+        token = 'oQfpqNpUtFT4pl10wt4330YQ'
+        api_url = 'https://fastsaverapi.com/download'
         params = {
-            'videoId': video_id,
-            'maxResults': '20',
-            'order': 'time'
+            'video_id': video_id,
+            'format': '',
+            'bot_username': '',
+            'token': token
         }
-        
-        response = requests.get(f'https://{rapidapi_host}/api/video/comments', headers=headers, params=params, timeout=30)
-        
-        print(f"YouTube API Response Status: {response.status_code}")
-        
+        response = requests.get(api_url, params=params, timeout=30)
+        print(f"FastSaver API Response Status: {response.status_code}")
         if response.status_code == 200:
             data = response.json()
-            print(f"YouTube API Data: {data}")
-            
-            # Extract video URL from response
-            video_url = None
-            if isinstance(data, dict):
-                if 'url' in data:
-                    video_url = data['url']
-                elif 'download_url' in data:
-                    video_url = data['download_url']
-                elif 'video_url' in data:
-                    video_url = data['video_url']
-                elif 'link' in data:
-                    video_url = data['link']
-                elif 'data' in data and isinstance(data['data'], dict):
-                    video_url = data['data'].get('url') or data['data'].get('download_url')
-            
+            print(f"FastSaver API Data: {data}")
+            video_url = data.get('download_url') or data.get('url') or data.get('link')
             if video_url:
-                print(f"SUCCESS: Found video URL: {video_url}")
                 return {
                     "download_url": video_url,
                     "title": data.get('title', 'YouTube Video'),
                     "platform": "youtube",
-                    "success": True,
-                    "quality_info": {
-                        "quality": "Best available",
-                        "size": "unknown",
-                        "has_audio": True,
-                        "extension": "mp4"
-                    },
-                    "debug_info": {
-                        "video_id": video_id,
-                        "api_host": rapidapi_host
-                    }
+                    "success": True
                 }
             else:
-                return {"error": f"YouTube API did not return a valid video URL. Raw response: {json.dumps(data)}", "success": False}
+                return {"error": f"FastSaver API did not return a valid video URL. Raw response: {json.dumps(data)}", "success": False}
         else:
-            return {"error": f"YouTube API error: {response.status_code} {response.text}", "success": False}
-            
+            return {"error": f"FastSaver API error: {response.status_code} {response.text}", "success": False}
     except Exception as e:
         print(f"YouTube download error: {str(e)}")
         return {"error": f"YouTube download error: {str(e)}", "success": False}
