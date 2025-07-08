@@ -22,22 +22,17 @@ def download_tiktok(url):
     """Download TikTok video using RapidAPI"""
     try:
         rapidapi_key = '164e51757bmsh7607ec502ddd08ap19830fjsnaee61ed9f238'
-        rapidapi_host = 'mediafetch-api.p.rapidapi.com'
+        rapidapi_host = 'tiktok-max-quality.p.rapidapi.com'
         
         headers = {
             'x-rapidapi-key': rapidapi_key,
-            'x-rapidapi-host': rapidapi_host,
-            'Content-Type': 'application/json'
+            'x-rapidapi-host': rapidapi_host
         }
         
-        # Use POST request with JSON body
-        payload = {
-            'url': url,
-            'format': 'mp4',
-            'quality': 'high'
-        }
+        # Use GET request with URL parameter
+        params = {'url': url}
         
-        response = requests.post(f'https://{rapidapi_host}/download', headers=headers, json=payload, timeout=30)
+        response = requests.get(f'https://{rapidapi_host}/download/', headers=headers, params=params, timeout=30)
         
         print(f"TikTok API Response Status: {response.status_code}")
         
@@ -79,22 +74,17 @@ def download_instagram(url):
     """Download Instagram video using RapidAPI"""
     try:
         rapidapi_key = '164e51757bmsh7607ec502ddd08ap19830fjsnaee61ed9f238'
-        rapidapi_host = 'mediafetch-api.p.rapidapi.com'
+        rapidapi_host = 'instagram-downloader-scraper-reels-igtv-posts-stories.p.rapidapi.com'
         
         headers = {
             'x-rapidapi-key': rapidapi_key,
-            'x-rapidapi-host': rapidapi_host,
-            'Content-Type': 'application/json'
+            'x-rapidapi-host': rapidapi_host
         }
         
-        # Use POST request with JSON body
-        payload = {
-            'url': url,
-            'format': 'mp4',
-            'quality': 'high'
-        }
+        # Use GET request with URL parameter
+        params = {'url': url}
         
-        response = requests.post(f'https://{rapidapi_host}/download', headers=headers, json=payload, timeout=30)
+        response = requests.get(f'https://{rapidapi_host}/ping', headers=headers, params=params, timeout=30)
         
         print(f"Instagram API Response Status: {response.status_code}")
         
@@ -228,53 +218,40 @@ def download_youtube(url, quality_index=None):
             return {"error": "Could not extract video ID from YouTube URL", "success": False}
         
         rapidapi_key = '164e51757bmsh7607ec502ddd08ap19830fjsnaee61ed9f238'
-        rapidapi_host = 'youtube-media-downloader.p.rapidapi.com'
+        rapidapi_host = 'youtube-video-fast-downloader-24-7.p.rapidapi.com'
         
         headers = {
             'x-rapidapi-key': rapidapi_key,
             'x-rapidapi-host': rapidapi_host
         }
         
-        # Get video details
-        params = {
-            'videoId': video_id,
-            'urlAccess': 'normal',
-            'videos': 'auto',
-            'audios': 'auto'
-        }
+        # Use the new API endpoint with video ID and quality
+        # Default to quality 251 (high quality audio)
+        quality = '251'  # Default quality
+        if quality_index is not None:
+            # Map quality index to actual quality codes if needed
+            quality_map = {0: '251', 1: '140', 2: '139'}  # High, Medium, Low
+            quality = quality_map.get(quality_index, '251')
         
-        response = requests.get(f'https://{rapidapi_host}/v2/video/details', headers=headers, params=params, timeout=30)
+        response = requests.get(f'https://{rapidapi_host}/download_audio/{video_id}?quality={quality}', headers=headers, timeout=30)
+        
+        print(f"YouTube API Response Status: {response.status_code}")
         
         if response.status_code == 200:
             data = response.json()
+            print(f"YouTube API Data: {data}")
             
-            # Extract video URL based on quality selection
+            # Extract video URL from response
             video_url = None
-            selected_quality = None
-            
-            if 'videos' in data and 'items' in data['videos'] and isinstance(data['videos']['items'], list):
-                video_items = data['videos']['items']
-                
-                if quality_index is not None and 0 <= quality_index < len(video_items):
-                    # Use specified quality
-                    selected_quality = video_items[quality_index]
-                    video_url = selected_quality.get('url')
-                    print(f"Selected quality {quality_index}: {selected_quality.get('quality', 'unknown')}")
-                else:
-                    # Auto-select best quality with audio
-                    best_video = None
-                    for video in video_items:
-                        if video.get('hasAudio', False):
-                            best_video = video
-                            break
-                    
-                    if not best_video and video_items:
-                        best_video = video_items[0]
-                    
-                    if best_video:
-                        selected_quality = best_video
-                        video_url = best_video.get('url')
-                        print(f"Auto-selected quality: {best_video.get('quality', 'unknown')}")
+            if isinstance(data, dict):
+                if 'url' in data:
+                    video_url = data['url']
+                elif 'download_url' in data:
+                    video_url = data['download_url']
+                elif 'link' in data:
+                    video_url = data['link']
+                elif 'data' in data and isinstance(data['data'], dict):
+                    video_url = data['data'].get('url') or data['data'].get('download_url')
             
             if video_url:
                 print(f"SUCCESS: Found video URL: {video_url}")
@@ -284,23 +261,21 @@ def download_youtube(url, quality_index=None):
                     "platform": "youtube",
                     "success": True,
                     "quality_info": {
-                        "quality": selected_quality.get('quality', 'unknown') if selected_quality else 'unknown',
-                        "size": selected_quality.get('sizeText', 'unknown') if selected_quality else 'unknown',
-                        "width": selected_quality.get('width', 0) if selected_quality else 0,
-                        "height": selected_quality.get('height', 0) if selected_quality else 0,
-                        "has_audio": selected_quality.get('hasAudio', False) if selected_quality else False,
-                        "extension": selected_quality.get('extension', 'mp4') if selected_quality else 'mp4'
+                        "quality": f"Quality {quality}",
+                        "size": "unknown",
+                        "has_audio": True,
+                        "extension": "mp4"
                     },
                     "debug_info": {
                         "video_id": video_id,
                         "api_host": rapidapi_host,
-                        "quality_index": quality_index
+                        "quality": quality
                     }
                 }
             else:
-                return {"error": "No video URL found in response", "success": False}
+                return {"error": f"YouTube API did not return a valid video URL. Raw response: {json.dumps(data)}", "success": False}
         else:
-            return {"error": f"API returned error status: {response.status_code}", "success": False}
+            return {"error": f"YouTube API error: {response.status_code} {response.text}", "success": False}
             
     except Exception as e:
         print(f"YouTube download error: {str(e)}")
@@ -398,7 +373,7 @@ class handler(BaseHTTPRequestHandler):
                     "test_url": test_url,
                     "result": result,
                     "message": "YouTube API test completed",
-                    "api_host": "youtube-media-downloader.p.rapidapi.com"
+                    "api_host": "youtube-video-fast-downloader-24-7.p.rapidapi.com"
                 }
             except Exception as e:
                 response = {
@@ -406,7 +381,7 @@ class handler(BaseHTTPRequestHandler):
                     "test_url": test_url,
                     "error": str(e),
                     "message": "YouTube API test failed",
-                    "api_host": "youtube-media-downloader.p.rapidapi.com"
+                    "api_host": "youtube-video-fast-downloader-24-7.p.rapidapi.com"
                 }
             
             self.wfile.write(json.dumps(response).encode())
@@ -455,9 +430,9 @@ class handler(BaseHTTPRequestHandler):
                 "download": "/api/download (POST)"
             },
             "apis": {
-                "youtube": "youtube-media-downloader.p.rapidapi.com",
-                "tiktok": "mediafetch-api.p.rapidapi.com",
-                "instagram": "mediafetch-api.p.rapidapi.com"
+                "youtube": "youtube-video-fast-downloader-24-7.p.rapidapi.com",
+                "tiktok": "tiktok-max-quality.p.rapidapi.com",
+                "instagram": "instagram-downloader-scraper-reels-igtv-posts-stories.p.rapidapi.com"
             }
         }
         self.wfile.write(json.dumps(response).encode())
