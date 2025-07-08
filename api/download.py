@@ -191,32 +191,54 @@ def download_youtube(url):
                     # Try to extract video URL from response
                     video_url = None
                     
-                    # Method 1: Check for videos array
-                    if 'videos' in data and isinstance(data['videos'], list) and len(data['videos']) > 0:
+                    # Method 1: Check for videos.items array (new API structure)
+                    if 'videos' in data and 'items' in data['videos'] and isinstance(data['videos']['items'], list) and len(data['videos']['items']) > 0:
+                        # Get the best quality video with audio
+                        video_items = data['videos']['items']
+                        best_video = None
+                        
+                        # First try to find a video with audio
+                        for video in video_items:
+                            if video.get('hasAudio', False):
+                                best_video = video
+                                break
+                        
+                        # If no video with audio, take the first one
+                        if not best_video and video_items:
+                            best_video = video_items[0]
+                        
+                        if best_video:
+                            video_url = best_video.get('url')
+                            print(f"Found video URL in videos.items array: {video_url}")
+                            print(f"Video quality: {best_video.get('quality', 'unknown')}")
+                            print(f"Video size: {best_video.get('sizeText', 'unknown')}")
+                    
+                    # Method 2: Check for direct videos array (fallback)
+                    elif 'videos' in data and isinstance(data['videos'], list) and len(data['videos']) > 0:
                         video_url = data['videos'][0].get('url')
                         print(f"Found video URL in videos array: {video_url}")
                     
-                    # Method 2: Check for direct URL fields
+                    # Method 3: Check for direct URL fields
                     elif 'url' in data:
                         video_url = data['url']
                         print(f"Found video URL in url field: {video_url}")
                     
-                    # Method 3: Check for download_url
+                    # Method 4: Check for download_url
                     elif 'download_url' in data:
                         video_url = data['download_url']
                         print(f"Found video URL in download_url field: {video_url}")
                     
-                    # Method 4: Check for video_url
+                    # Method 5: Check for video_url
                     elif 'video_url' in data:
                         video_url = data['video_url']
                         print(f"Found video URL in video_url field: {video_url}")
                     
-                    # Method 5: Check for link
+                    # Method 6: Check for link
                     elif 'link' in data:
                         video_url = data['link']
                         print(f"Found video URL in link field: {video_url}")
                     
-                    # Method 6: Check for formats array
+                    # Method 7: Check for formats array
                     elif 'formats' in data and isinstance(data['formats'], list) and len(data['formats']) > 0:
                         video_url = data['formats'][0].get('url')
                         print(f"Found video URL in formats array: {video_url}")
@@ -231,7 +253,9 @@ def download_youtube(url):
                             "debug_info": {
                                 "video_id": video_id,
                                 "endpoint_used": f"endpoint_{i+1}",
-                                "api_host": rapidapi_host
+                                "api_host": rapidapi_host,
+                                "video_quality": best_video.get('quality', 'unknown') if 'best_video' in locals() else 'unknown',
+                                "video_size": best_video.get('sizeText', 'unknown') if 'best_video' in locals() else 'unknown'
                             }
                         }
                     else:
