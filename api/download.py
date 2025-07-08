@@ -21,28 +21,23 @@ def detect_platform(url):
 def download_tiktok(url):
     """Download TikTok video using RapidAPI"""
     try:
-        # Extract video ID from URL
-        video_id = None
-        if 'video/' in url:
-            video_id = url.split('video/')[-1].split('?')[0]
-        elif 'v=' in url:
-            video_id = url.split('v=')[-1].split('&')[0]
-        
-        if not video_id:
-            return {"error": "Could not extract video ID from TikTok URL", "success": False}
-        
         rapidapi_key = '164e51757bmsh7607ec502ddd08ap19830fjsnaee61ed9f238'
-        rapidapi_host = 'tiktok-video-no-watermark2.p.rapidapi.com'
+        rapidapi_host = 'mediafetch-api.p.rapidapi.com'
         
         headers = {
             'x-rapidapi-key': rapidapi_key,
-            'x-rapidapi-host': rapidapi_host
+            'x-rapidapi-host': rapidapi_host,
+            'Content-Type': 'application/json'
         }
         
-        # Use the video download endpoint
-        params = {'url': url}
+        # Use POST request with JSON body
+        payload = {
+            'url': url,
+            'format': 'mp4',
+            'quality': 'high'
+        }
         
-        response = requests.get(f'https://{rapidapi_host}/video/by-url', headers=headers, params=params, timeout=30)
+        response = requests.post(f'https://{rapidapi_host}/download', headers=headers, json=payload, timeout=30)
         
         print(f"TikTok API Response Status: {response.status_code}")
         
@@ -53,19 +48,21 @@ def download_tiktok(url):
             # Extract video URL from response
             video_url = None
             if isinstance(data, dict):
-                if 'data' in data and 'play' in data['data']:
-                    video_url = data['data']['play']
-                elif 'video_data' in data and 'play' in data['video_data']:
-                    video_url = data['video_data']['play']
-                elif 'url' in data:
+                if 'url' in data:
                     video_url = data['url']
                 elif 'download_url' in data:
                     video_url = data['download_url']
+                elif 'video_url' in data:
+                    video_url = data['video_url']
+                elif 'link' in data:
+                    video_url = data['link']
+                elif 'data' in data and isinstance(data['data'], dict):
+                    video_url = data['data'].get('url') or data['data'].get('download_url')
             
             if video_url:
                 return {
                     "download_url": video_url,
-                    "title": data.get('data', {}).get('title', 'TikTok Video'),
+                    "title": data.get('title', data.get('data', {}).get('title', 'TikTok Video')),
                     "platform": "tiktok",
                     "success": True
                 }
@@ -82,16 +79,22 @@ def download_instagram(url):
     """Download Instagram video using RapidAPI"""
     try:
         rapidapi_key = '164e51757bmsh7607ec502ddd08ap19830fjsnaee61ed9f238'
-        rapidapi_host = 'instagram-reels-downloader-api.p.rapidapi.com'
+        rapidapi_host = 'mediafetch-api.p.rapidapi.com'
         
         headers = {
             'x-rapidapi-key': rapidapi_key,
-            'x-rapidapi-host': rapidapi_host
+            'x-rapidapi-host': rapidapi_host,
+            'Content-Type': 'application/json'
         }
         
-        params = {'url': url}
+        # Use POST request with JSON body
+        payload = {
+            'url': url,
+            'format': 'mp4',
+            'quality': 'high'
+        }
         
-        response = requests.get(f'https://{rapidapi_host}/download', headers=headers, params=params, timeout=30)
+        response = requests.post(f'https://{rapidapi_host}/download', headers=headers, json=payload, timeout=30)
         
         print(f"Instagram API Response Status: {response.status_code}")
         
@@ -102,19 +105,21 @@ def download_instagram(url):
             # Extract video URL from response
             video_url = None
             if isinstance(data, dict):
-                if 'video' in data:
-                    video_url = data['video']
-                elif 'url' in data:
+                if 'url' in data:
                     video_url = data['url']
                 elif 'download_url' in data:
                     video_url = data['download_url']
-                elif 'media' in data and isinstance(data['media'], list) and len(data['media']) > 0:
-                    video_url = data['media'][0].get('url') or data['media'][0].get('video_url')
+                elif 'video_url' in data:
+                    video_url = data['video_url']
+                elif 'link' in data:
+                    video_url = data['link']
+                elif 'data' in data and isinstance(data['data'], dict):
+                    video_url = data['data'].get('url') or data['data'].get('download_url')
             
             if video_url:
                 return {
                     "download_url": video_url,
-                    "title": data.get('title', data.get('caption', 'Instagram Video')),
+                    "title": data.get('title', data.get('data', {}).get('title', 'Instagram Video')),
                     "platform": "instagram",
                     "success": True
                 }
@@ -451,8 +456,8 @@ class handler(BaseHTTPRequestHandler):
             },
             "apis": {
                 "youtube": "youtube-media-downloader.p.rapidapi.com",
-                "tiktok": "tiktok-video-no-watermark2.p.rapidapi.com",
-                "instagram": "instagram-reels-downloader-api.p.rapidapi.com"
+                "tiktok": "mediafetch-api.p.rapidapi.com",
+                "instagram": "mediafetch-api.p.rapidapi.com"
             }
         }
         self.wfile.write(json.dumps(response).encode())

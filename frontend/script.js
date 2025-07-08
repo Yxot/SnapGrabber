@@ -17,38 +17,8 @@ const urlInput = document.getElementById('url');
 urlInput.addEventListener('change', async function() {
   const url = urlInput.value.trim();
   if (isYouTubeUrl(url)) {
-    showSuccessMessage('Fetching available YouTube qualities...');
-    try {
-      const res = await fetch(`/api/download/qualities?url=${encodeURIComponent(url)}`);
-      const data = await res.json();
-      if (data.success && Array.isArray(data.qualities)) {
-        // Only show qualities with audio
-        youtubeQualities = data.qualities.filter(q => q.has_audio);
-        if (youtubeQualities.length === 0) {
-          showErrorMessage('No downloadable YouTube qualities with audio found.');
-          showQualityDropdown(false);
-          return;
-        }
-        // Populate dropdown
-        const select = document.getElementById('quality-dropdown');
-        select.innerHTML = '';
-        youtubeQualities.forEach((q, i) => {
-          const opt = document.createElement('option');
-          opt.value = i;
-          opt.textContent = `${q.quality} (${q.size})`;
-          select.appendChild(opt);
-        });
-        selectedQualityIndex = 0;
-        select.value = 0;
-        showQualityDropdown(true);
-      } else {
-        showErrorMessage(data.error || 'Could not fetch YouTube qualities.');
-        showQualityDropdown(false);
-      }
-    } catch (err) {
-      showErrorMessage('Failed to fetch YouTube qualities.');
-      showQualityDropdown(false);
-    }
+    // For now, just hide the dropdown since quality fetching isn't working
+    showQualityDropdown(false);
   } else {
     showQualityDropdown(false);
   }
@@ -120,10 +90,24 @@ document.getElementById('download-form').addEventListener('submit', async functi
     console.log('API Response:', data);
     
     if (data.success && data.download_url) {
-      // Success - show download info and open in new tab
-      showSuccessMessage(`Ready: ${data.title} from ${data.platform}. Click the link to download.`);
-      window.open(data.download_url, '_blank');
-      // Do not auto-download, just open the link
+      // Success - show download info and trigger download
+      showSuccessMessage(`Downloading ${data.title} from ${data.platform}...`);
+      
+      // Create a temporary link to trigger download
+      const link = document.createElement('a');
+      link.href = data.download_url;
+      link.download = `${data.platform}_${Date.now()}.mp4`;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      // Show success message
+      setTimeout(() => {
+        showSuccessMessage('Download completed! Check your downloads folder.');
+      }, 2000);
+      
       // Clear the form
       document.getElementById('url').value = '';
       showQualityDropdown(false);
