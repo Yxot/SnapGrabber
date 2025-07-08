@@ -69,8 +69,10 @@ def download_tiktok(url):
                     "platform": "tiktok",
                     "success": True
                 }
-        
-        return {"error": "Failed to extract TikTok video", "success": False}
+            else:
+                return {"error": f"TikTok API did not return a valid video URL. Raw response: {json.dumps(data)}", "success": False}
+        else:
+            return {"error": f"TikTok API error: {response.status_code} {response.text}", "success": False}
         
     except Exception as e:
         print(f"TikTok download error: {str(e)}")
@@ -116,8 +118,10 @@ def download_instagram(url):
                     "platform": "instagram",
                     "success": True
                 }
-        
-        return {"error": "Failed to extract Instagram video", "success": False}
+            else:
+                return {"error": f"Instagram API did not return a valid video URL. Raw response: {json.dumps(data)}", "success": False}
+        else:
+            return {"error": f"Instagram API error: {response.status_code} {response.text}", "success": False}
         
     except Exception as e:
         print(f"Instagram download error: {str(e)}")
