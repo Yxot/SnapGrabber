@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube Quality Selection Test - SnapGrabber</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .animate-fadeInUp {
+            animation: fadeInUp 0.5s ease-out;
+        }
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <h1 class="text-3xl font-bold text-center mb-8">YouTube Quality Selection Test</h1>
+        
+        <div class="max-w-2xl mx-auto">
+            <!-- URL Input -->
+            <div class="mb-6">
+                <label class="block text-sm font-medium mb-2">YouTube URL:</label>
+                <input type="url" id="youtube-url" placeholder="https://youtu.be/..." 
+                       class="w-full px-4 py-2 bg-gray-800 border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500">
+            </div>
+            
+            <!-- Get Qualities Button -->
+            <button id="get-qualities" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg mb-6">
+                Get Available Qualities
+            </button>
+            
+            <!-- Qualities Display -->
+            <div id="qualities-container" class="hidden">
+                <h2 class="text-xl font-semibold mb-4">Available Qualities:</h2>
+                <div id="qualities-list" class="space-y-2"></div>
+            </div>
+            
+            <!-- Download Section -->
+            <div id="download-section" class="hidden mt-6 p-4 bg-gray-800 rounded-lg">
+                <h3 class="text-lg font-semibold mb-3">Download Selected Quality:</h3>
+                <button id="download-btn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg">
+                    Download Video
+                </button>
+            </div>
+            
+            <!-- Status Messages -->
+            <div id="status" class="mt-4"></div>
+        </div>
+    </div>
+
+    <script>
+        let currentQualities = [];
+        let selectedQualityIndex = null;
+        
+        document.getElementById('get-qualities').addEventListener('click', async function() {
+            const url = document.getElementById('youtube-url').value.trim();
+            
+            if (!url) {
+                showStatus('Please enter a YouTube URL', 'error');
+                return;
+            }
+            
+            if (!url.includes('youtube.com') && !url.includes('youtu.be')) {
+                showStatus('Please enter a valid YouTube URL', 'error');
+                return;
+            }
+            
+            showStatus('Fetching available qualities...', 'info');
+            
+            try {
+                const response = await fetch(`/api/download/qualities?url=${encodeURIComponent(url)}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    currentQualities = data.qualities;
+                    displayQualities(data);
+                    showStatus(`Found ${data.total_qualities} quality options`, 'success');
+                } else {
+                    showStatus(data.error || 'Failed to get qualities', 'error');
+                }
+            } catch (error) {
+                showStatus('Network error. Please try again.', 'error');
+            }
+        });
+        
+        document.getElementById('download-btn').addEventListener('click', async function() {
+            if (selectedQualityIndex === null) {
+                showStatus('Please select a quality first', 'error');
+                return;
+            }
+            
+            const url = document.getElementById('youtube-url').value.trim();
+            showStatus('Downloading video...', 'info');
+            
+            try {
+                const response = await fetch('/api/download', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        url: url,
+                        quality_index: selectedQualityIndex
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Trigger download
+                    const link = document.createElement('a');
+                    link.href = data.download_url;
+                    link.download = `youtube_${data.quality_info.quality}_${Date.now()}.${data.quality_info.extension}`;
+                    link.target = '_blank';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    
+                    showStatus(`Downloading ${data.quality_info.quality} (${data.quality_info.size})`, 'success');
+                } else {
+                    showStatus(data.error || 'Download failed', 'error');
+                }
+            } catch (error) {
+                showStatus('Download error. Please try again.', 'error');
+            }
+        });
+        
+        function displayQualities(data) {
+            const container = document.getElementById('qualities-container');
+            const list = document.getElementById('qualities-list');
+            const downloadSection = document.getElementById('download-section');
+            
+            container.classList.remove('hidden');
+            downloadSection.classList.remove('hidden');
+            
+            list.innerHTML = '';
+            
+            data.qualities.forEach((quality, index) => {
+                const qualityDiv = document.createElement('div');
+                qualityDiv.className = 'flex items-center justify-between p-3 bg-gray-700 rounded-lg cursor-pointer hover:bg-gray-600 transition-colors';
+                qualityDiv.onclick = () => selectQuality(index);
+                
+                const audioIcon = quality.has_audio ? '🔊' : '🔇';
+                const selectedClass = selectedQualityIndex === index ? 'border-2 border-blue-500' : '';
+                
+                qualityDiv.innerHTML = `
+                    <div class="flex items-center space-x-3">
+                        <input type="radio" name="quality" value="${index}" ${selectedQualityIndex === index ? 'checked' : ''}>
+                        <span class="font-medium">${quality.quality}</span>
+                        <span class="text-gray-400">${quality.size}</span>
+                        <span class="text-sm text-gray-500">${quality.width}x${quality.height}</span>
+                        <span>${audioIcon}</span>
+                    </div>
+                `;
+                
+                list.appendChild(qualityDiv);
+            });
+        }
+        
+        function selectQuality(index) {
+            selectedQualityIndex = index;
+            
+            // Update radio buttons
+            document.querySelectorAll('input[name="quality"]').forEach((radio, i) => {
+                radio.checked = i === index;
+            });
+            
+            // Update visual selection
+            document.querySelectorAll('#qualities-list > div').forEach((div, i) => {
+                if (i === index) {
+                    div.classList.add('border-2', 'border-blue-500');
+                } else {
+                    div.classList.remove('border-2', 'border-blue-500');
+                }
+            });
+            
+            const quality = currentQualities[index];
+            showStatus(`Selected: ${quality.quality} (${quality.size})`, 'info');
+        }
+        
+        function showStatus(message, type) {
+            const statusDiv = document.getElementById('status');
+            const colors = {
+                success: 'text-green-400',
+                error: 'text-red-400',
+                info: 'text-blue-400'
+            };
+            
+            statusDiv.className = `mt-4 p-3 rounded-lg ${colors[type]} animate-fadeInUp`;
+            statusDiv.textContent = message;
+            
+            setTimeout(() => {
+                statusDiv.textContent = '';
+            }, 5000);
+        }
+    </script>
+</body>
+</html> 
