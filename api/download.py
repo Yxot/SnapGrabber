@@ -83,7 +83,7 @@ def download_instagram(url):
             'bot_username': '',
             'token': token
         }
-        response = requests.get(api_url, params=params, timeout=30)
+        response = requests.post(api_url, json=params, timeout=30)
         print(f"FastSaver API Response Status: {response.status_code}")
         if response.status_code == 200:
             data = response.json()
@@ -207,7 +207,7 @@ def download_youtube(url, quality_index=None):
             'bot_username': '',
             'token': token
         }
-        response = requests.get(api_url, params=params, timeout=30)
+        response = requests.post(api_url, json=params, timeout=30)
         print(f"FastSaver API Response Status: {response.status_code}")
         if response.status_code == 200:
             data = response.json()
